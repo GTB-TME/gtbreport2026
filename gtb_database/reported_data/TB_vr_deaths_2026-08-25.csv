@@ -1,0 +1,622 @@
+country,iso2,iso3,iso_numeric,g_whoregion,year,vr_data_available,total_deaths_vr,r00_r99_deaths_vr,tbdeaths_vr
+Afghanistan,AF,AFG,4,EMR,2023,0,,,
+Afghanistan,AF,AFG,4,EMR,2024,0,,,
+Afghanistan,AF,AFG,4,EMR,2025,0,,,
+Albania,AL,ALB,8,EUR,2023,1,7,3,4
+Albania,AL,ALB,8,EUR,2024,0,,,
+Albania,AL,ALB,8,EUR,2025,1,4,3,1
+Algeria,DZ,DZA,12,AFR,2023,0,,,
+Algeria,DZ,DZA,12,AFR,2024,,,,
+Algeria,DZ,DZA,12,AFR,2025,,,,
+Andorra,AD,AND,20,EUR,2023,0,,,
+Andorra,AD,AND,20,EUR,2024,,,,
+Andorra,AD,AND,20,EUR,2025,,,,
+Angola,AO,AGO,24,AFR,2023,,,,
+Angola,AO,AGO,24,AFR,2024,,,,
+Angola,AO,AGO,24,AFR,2025,0,,,
+Antigua and Barbuda,AG,ATG,28,AMR,2023,1,0,0,0
+Antigua and Barbuda,AG,ATG,28,AMR,2024,0,,,
+Antigua and Barbuda,AG,ATG,28,AMR,2025,1,,,
+Argentina,AR,ARG,32,AMR,2023,0,,,
+Argentina,AR,ARG,32,AMR,2024,0,,,
+Argentina,AR,ARG,32,AMR,2025,,,,
+Armenia,AM,ARM,51,EUR,2023,0,,,
+Armenia,AM,ARM,51,EUR,2024,0,,,
+Armenia,AM,ARM,51,EUR,2025,0,,,
+Aruba,AW,ABW,533,AMR,2023,,,,
+Aruba,AW,ABW,533,AMR,2024,0,,,
+Aruba,AW,ABW,533,AMR,2025,1,,,
+Australia,AU,AUS,36,WPR,2023,0,,,
+Australia,AU,AUS,36,WPR,2024,0,,,
+Australia,AU,AUS,36,WPR,2025,0,,,
+Austria,AT,AUT,40,EUR,2023,1,,,
+Austria,AT,AUT,40,EUR,2024,,,,
+Austria,AT,AUT,40,EUR,2025,1,,,
+Azerbaijan,AZ,AZE,31,EUR,2023,1,60150,60150,392
+Azerbaijan,AZ,AZE,31,EUR,2024,1,58909,,219
+Azerbaijan,AZ,AZE,31,EUR,2025,1,55983,584,248
+Bahamas,BS,BHS,44,AMR,2023,1,,,
+Bahamas,BS,BHS,44,AMR,2024,0,,,
+Bahamas,BS,BHS,44,AMR,2025,0,,,
+Bahrain,BH,BHR,48,EMR,2023,1,7,,
+Bahrain,BH,BHR,48,EMR,2024,0,,,
+Bahrain,BH,BHR,48,EMR,2025,0,,,
+Bangladesh,BD,BGD,50,SEA,2023,0,,,
+Bangladesh,BD,BGD,50,SEA,2024,0,,,
+Bangladesh,BD,BGD,50,SEA,2025,0,,,
+Barbados,BB,BRB,52,AMR,2023,0,,,
+Barbados,BB,BRB,52,AMR,2024,,,,
+Barbados,BB,BRB,52,AMR,2025,0,,,
+Belarus,BY,BLR,112,EUR,2023,0,,,
+Belarus,BY,BLR,112,EUR,2024,0,,,
+Belarus,BY,BLR,112,EUR,2025,0,,,
+Belgium,BE,BEL,56,EUR,2023,1,111300,,
+Belgium,BE,BEL,56,EUR,2024,1,,,
+Belgium,BE,BEL,56,EUR,2025,0,,,
+Belize,BZ,BLZ,84,AMR,2023,1,2280,,9
+Belize,BZ,BLZ,84,AMR,2024,1,2234,20,10
+Belize,BZ,BLZ,84,AMR,2025,1,2125,61,18
+Benin,BJ,BEN,204,AFR,2023,0,,,
+Benin,BJ,BEN,204,AFR,2024,0,,,
+Benin,BJ,BEN,204,AFR,2025,0,,,
+Bermuda,BM,BMU,60,AMR,2023,0,,,
+Bermuda,BM,BMU,60,AMR,2024,,,,
+Bermuda,BM,BMU,60,AMR,2025,,,,
+Bhutan,BT,BTN,64,SEA,2023,0,,,
+Bhutan,BT,BTN,64,SEA,2024,0,,,
+Bhutan,BT,BTN,64,SEA,2025,0,,,
+Bolivia (Plurinational State of),BO,BOL,68,AMR,2023,0,,,
+Bolivia (Plurinational State of),BO,BOL,68,AMR,2024,0,,,
+Bolivia (Plurinational State of),BO,BOL,68,AMR,2025,0,,,
+Bosnia and Herzegovina,BA,BIH,70,EUR,2023,0,,,
+Bosnia and Herzegovina,BA,BIH,70,EUR,2024,1,1,0,0
+Bosnia and Herzegovina,BA,BIH,70,EUR,2025,0,,,
+Botswana,BW,BWA,72,AFR,2023,0,,,
+Botswana,BW,BWA,72,AFR,2024,0,,,
+Botswana,BW,BWA,72,AFR,2025,0,,,
+Brazil,BR,BRA,76,AMR,2023,1,1465610,71128,6723
+Brazil,BR,BRA,76,AMR,2024,1,,,
+Brazil,BR,BRA,76,AMR,2025,1,1505275,81175,6929
+British Virgin Islands,VG,VGB,92,AMR,2023,1,0,0,0
+British Virgin Islands,VG,VGB,92,AMR,2024,,,,
+British Virgin Islands,VG,VGB,92,AMR,2025,,,,
+Brunei Darussalam,BN,BRN,96,WPR,2023,0,,,
+Brunei Darussalam,BN,BRN,96,WPR,2024,0,,,
+Brunei Darussalam,BN,BRN,96,WPR,2025,0,,,
+Bulgaria,BG,BGR,100,EUR,2023,1,,,32
+Bulgaria,BG,BGR,100,EUR,2024,1,,,47
+Bulgaria,BG,BGR,100,EUR,2025,1,,,
+Burkina Faso,BF,BFA,854,AFR,2023,0,,,
+Burkina Faso,BF,BFA,854,AFR,2024,0,,,
+Burkina Faso,BF,BFA,854,AFR,2025,0,,,
+Burundi,BI,BDI,108,AFR,2023,0,,,
+Burundi,BI,BDI,108,AFR,2024,0,,,
+Burundi,BI,BDI,108,AFR,2025,0,,,
+Cabo Verde,CV,CPV,132,AFR,2023,1,2,2,2
+Cabo Verde,CV,CPV,132,AFR,2024,0,,,
+Cabo Verde,CV,CPV,132,AFR,2025,1,7,,
+Cambodia,KH,KHM,116,WPR,2023,0,,,
+Cambodia,KH,KHM,116,WPR,2024,0,,,
+Cambodia,KH,KHM,116,WPR,2025,0,,,
+Cameroon,CM,CMR,120,AFR,2023,0,,,
+Cameroon,CM,CMR,120,AFR,2024,0,,,
+Cameroon,CM,CMR,120,AFR,2025,0,,,
+Canada,CA,CAN,124,AMR,2023,0,,,
+Canada,CA,CAN,124,AMR,2024,0,,,
+Canada,CA,CAN,124,AMR,2025,0,,,
+Cayman Islands,KY,CYM,136,AMR,2023,1,308,0,0
+Cayman Islands,KY,CYM,136,AMR,2024,,,,
+Cayman Islands,KY,CYM,136,AMR,2025,,,,
+Central African Republic,CF,CAF,140,AFR,2023,0,,,
+Central African Republic,CF,CAF,140,AFR,2024,0,,,
+Central African Republic,CF,CAF,140,AFR,2025,0,,,
+Chad,TD,TCD,148,AFR,2023,0,,,
+Chad,TD,TCD,148,AFR,2024,0,,,
+Chad,TD,TCD,148,AFR,2025,0,,,
+Chile,CL,CHL,152,AMR,2023,1,121981,4838,251
+Chile,CL,CHL,152,AMR,2024,1,126902,4008,363
+Chile,CL,CHL,152,AMR,2025,1,,,232
+China,CN,CHN,156,WPR,2023,0,,,
+China,CN,CHN,156,WPR,2024,0,,,
+China,CN,CHN,156,WPR,2025,0,,,
+"China, Hong Kong SAR",HK,HKG,344,WPR,2023,1,56776,2271,173
+"China, Hong Kong SAR",HK,HKG,344,WPR,2024,1,,,
+"China, Hong Kong SAR",HK,HKG,344,WPR,2025,1,,,
+"China, Macao SAR",MO,MAC,446,WPR,2023,1,2981,133,7
+"China, Macao SAR",MO,MAC,446,WPR,2024,1,2477,,7
+"China, Macao SAR",MO,MAC,446,WPR,2025,1,2424,79,12
+Colombia,CO,COL,170,AMR,2023,1,265282,3013,1496
+Colombia,CO,COL,170,AMR,2024,1,227641,3169,1427
+Colombia,CO,COL,170,AMR,2025,1,283378,2804,1678
+Comoros,KM,COM,174,AFR,2023,0,,,
+Comoros,KM,COM,174,AFR,2024,0,,,
+Comoros,KM,COM,174,AFR,2025,0,,,
+Congo,CG,COG,178,AFR,2023,0,,,
+Congo,CG,COG,178,AFR,2024,0,,,
+Congo,CG,COG,178,AFR,2025,0,,,
+Cook Islands,CK,COK,184,WPR,2023,0,,,
+Cook Islands,CK,COK,184,WPR,2024,,,,
+Cook Islands,CK,COK,184,WPR,2025,,,,
+Costa Rica,CR,CRI,188,AMR,2023,1,29189,501,30
+Costa Rica,CR,CRI,188,AMR,2024,1,30029,625,38
+Costa Rica,CR,CRI,188,AMR,2025,1,30650,512,51
+Cuba,CU,CUB,192,AMR,2023,1,117740,1075,50
+Cuba,CU,CUB,192,AMR,2024,1,128098,1235,54
+Cuba,CU,CUB,192,AMR,2025,1,61276,489,47
+Czechia,CZ,CZE,203,EUR,2023,1,112795,3368,28
+Czechia,CZ,CZE,203,EUR,2024,1,,,
+Czechia,CZ,CZE,203,EUR,2025,0,,,
+Côte d'Ivoire,CI,CIV,384,AFR,2023,0,,,
+Côte d'Ivoire,CI,CIV,384,AFR,2024,0,,,
+Côte d'Ivoire,CI,CIV,384,AFR,2025,0,,,
+Democratic People's Republic of Korea,KP,PRK,408,SEA,2023,0,,,
+Democratic People's Republic of Korea,KP,PRK,408,SEA,2024,,,,
+Democratic People's Republic of Korea,KP,PRK,408,SEA,2025,,,,
+Democratic Republic of the Congo,CD,COD,180,AFR,2023,0,,,
+Democratic Republic of the Congo,CD,COD,180,AFR,2024,0,,,
+Democratic Republic of the Congo,CD,COD,180,AFR,2025,0,,,
+Denmark,DK,DNK,208,EUR,2023,,,,
+Denmark,DK,DNK,208,EUR,2024,,,,
+Denmark,DK,DNK,208,EUR,2025,,,,
+Dominica,DM,DMA,212,AMR,2023,1,744,,0
+Dominica,DM,DMA,212,AMR,2024,0,,,
+Dominica,DM,DMA,212,AMR,2025,,,,
+Dominican Republic,DO,DOM,214,AMR,2023,1,51335,7046,300
+Dominican Republic,DO,DOM,214,AMR,2024,1,52798,6255,744
+Dominican Republic,DO,DOM,214,AMR,2025,1,56275,6650,531
+Ecuador,EC,ECU,218,AMR,2023,0,,,
+Ecuador,EC,ECU,218,AMR,2024,0,,,
+Ecuador,EC,ECU,218,AMR,2025,0,,,
+Egypt,EG,EGY,818,EMR,2023,0,,,
+Egypt,EG,EGY,818,EMR,2024,0,,,
+Egypt,EG,EGY,818,EMR,2025,0,,,
+El Salvador,SV,SLV,222,AMR,2023,1,99,22,0
+El Salvador,SV,SLV,222,AMR,2024,1,105,30,0
+El Salvador,SV,SLV,222,AMR,2025,1,91,32,0
+Equatorial Guinea,GQ,GNQ,226,AFR,2023,0,,,
+Equatorial Guinea,GQ,GNQ,226,AFR,2024,0,,,
+Equatorial Guinea,GQ,GNQ,226,AFR,2025,0,,,
+Eritrea,ER,ERI,232,AFR,2023,0,,,
+Eritrea,ER,ERI,232,AFR,2024,0,,,
+Eritrea,ER,ERI,232,AFR,2025,0,,,
+Estonia,EE,EST,233,EUR,2023,1,15763,211,8
+Estonia,EE,EST,233,EUR,2024,1,15525,204,11
+Estonia,EE,EST,233,EUR,2025,1,15369,182,4
+Eswatini,SZ,SWZ,748,AFR,2023,0,,,
+Eswatini,SZ,SWZ,748,AFR,2024,0,,,
+Eswatini,SZ,SWZ,748,AFR,2025,0,,,
+Ethiopia,ET,ETH,231,AFR,2023,0,,,
+Ethiopia,ET,ETH,231,AFR,2024,0,,,
+Ethiopia,ET,ETH,231,AFR,2025,0,,,
+Fiji,FJ,FJI,242,WPR,2023,0,,,
+Fiji,FJ,FJI,242,WPR,2024,0,,,
+Fiji,FJ,FJI,242,WPR,2025,0,,,
+Finland,FI,FIN,246,EUR,2023,0,,,
+Finland,FI,FIN,246,EUR,2024,0,,,
+Finland,FI,FIN,246,EUR,2025,0,,,
+France,FR,FRA,250,EUR,2023,1,282,,
+France,FR,FRA,250,EUR,2024,1,,,
+France,FR,FRA,250,EUR,2025,1,,,249
+French Polynesia,PF,PYF,258,WPR,2023,0,,,
+French Polynesia,PF,PYF,258,WPR,2024,,,,
+French Polynesia,PF,PYF,258,WPR,2025,0,,,
+Gabon,GA,GAB,266,AFR,2023,0,,,
+Gabon,GA,GAB,266,AFR,2024,0,,,
+Gabon,GA,GAB,266,AFR,2025,0,,,
+Gambia,GM,GMB,270,AFR,2023,0,,,
+Gambia,GM,GMB,270,AFR,2024,0,,,
+Gambia,GM,GMB,270,AFR,2025,0,,,
+Georgia,GE,GEO,268,EUR,2023,1,42756,10355,36
+Georgia,GE,GEO,268,EUR,2024,1,43971,9558,35
+Georgia,GE,GEO,268,EUR,2025,1,44319,9389,40
+Germany,DE,DEU,276,EUR,2023,0,,,
+Germany,DE,DEU,276,EUR,2024,1,,,
+Germany,DE,DEU,276,EUR,2025,0,,,
+Ghana,GH,GHA,288,AFR,2023,0,,,
+Ghana,GH,GHA,288,AFR,2024,0,,,
+Ghana,GH,GHA,288,AFR,2025,0,,,
+Greece,GR,GRC,300,EUR,2023,,,,
+Greece,GR,GRC,300,EUR,2024,,,,
+Greece,GR,GRC,300,EUR,2025,0,,,
+Greenland,GL,GRL,304,EUR,2023,0,,,
+Greenland,GL,GRL,304,EUR,2024,0,,,
+Greenland,GL,GRL,304,EUR,2025,1,,,1
+Grenada,GD,GRD,308,AMR,2023,1,,,1
+Grenada,GD,GRD,308,AMR,2024,1,1173,28,1
+Grenada,GD,GRD,308,AMR,2025,1,0,0,0
+Guam,GU,GUM,316,WPR,2023,1,5,,3
+Guam,GU,GUM,316,WPR,2024,1,8,,3
+Guam,GU,GUM,316,WPR,2025,1,7,4,0
+Guatemala,GT,GTM,320,AMR,2023,1,,,
+Guatemala,GT,GTM,320,AMR,2024,0,,,
+Guatemala,GT,GTM,320,AMR,2025,0,,,
+Guinea,GN,GIN,324,AFR,2023,0,,,
+Guinea,GN,GIN,324,AFR,2024,0,,,
+Guinea,GN,GIN,324,AFR,2025,0,,,
+Guinea-Bissau,GW,GNB,624,AFR,2023,0,,,
+Guinea-Bissau,GW,GNB,624,AFR,2024,0,,,
+Guinea-Bissau,GW,GNB,624,AFR,2025,0,,,
+Guyana,GY,GUY,328,AMR,2023,1,,,
+Guyana,GY,GUY,328,AMR,2024,0,,,
+Guyana,GY,GUY,328,AMR,2025,1,0,0,0
+Haiti,HT,HTI,332,AMR,2023,0,,,
+Haiti,HT,HTI,332,AMR,2024,0,,,
+Haiti,HT,HTI,332,AMR,2025,0,,,
+Honduras,HN,HND,340,AMR,2023,0,,,
+Honduras,HN,HND,340,AMR,2024,0,,,
+Honduras,HN,HND,340,AMR,2025,0,,,
+Hungary,HU,HUN,348,EUR,2023,1,,,
+Hungary,HU,HUN,348,EUR,2024,1,,,
+Hungary,HU,HUN,348,EUR,2025,1,,,
+Iceland,IS,ISL,352,EUR,2023,,,,
+Iceland,IS,ISL,352,EUR,2024,,,,
+Iceland,IS,ISL,352,EUR,2025,0,,,
+India,IN,IND,356,SEA,2023,0,,,
+India,IN,IND,356,SEA,2024,0,,,
+India,IN,IND,356,SEA,2025,0,,,
+Indonesia,ID,IDN,360,WPR,2023,0,,,
+Indonesia,ID,IDN,360,WPR,2024,0,,,
+Indonesia,ID,IDN,360,WPR,2025,0,,,
+Iran (Islamic Republic of),IR,IRN,364,EMR,2023,1,,,
+Iran (Islamic Republic of),IR,IRN,364,EMR,2024,1,,,
+Iran (Islamic Republic of),IR,IRN,364,EMR,2025,0,,,
+Iraq,IQ,IRQ,368,EMR,2023,,,,
+Iraq,IQ,IRQ,368,EMR,2024,0,,,
+Iraq,IQ,IRQ,368,EMR,2025,0,,,
+Ireland,IE,IRL,372,EUR,2023,1,,,
+Ireland,IE,IRL,372,EUR,2024,0,,,
+Ireland,IE,IRL,372,EUR,2025,1,,,
+Israel,IL,ISR,376,EUR,2023,1,10,5,10
+Israel,IL,ISR,376,EUR,2024,1,51400,8,3
+Israel,IL,ISR,376,EUR,2025,,,,
+Italy,IT,ITA,380,EUR,2023,,,,
+Italy,IT,ITA,380,EUR,2024,1,648617,,
+Italy,IT,ITA,380,EUR,2025,,,,
+Jamaica,JM,JAM,388,AMR,2023,,,,
+Jamaica,JM,JAM,388,AMR,2024,0,,,
+Jamaica,JM,JAM,388,AMR,2025,0,,,
+Japan,JP,JPN,392,WPR,2023,1,1575936,35513,1587
+Japan,JP,JPN,392,WPR,2024,1,,,
+Japan,JP,JPN,392,WPR,2025,1,,,
+Jordan,JO,JOR,400,EMR,2023,0,,,
+Jordan,JO,JOR,400,EMR,2024,0,,,
+Jordan,JO,JOR,400,EMR,2025,0,,,
+Kazakhstan,KZ,KAZ,398,EUR,2023,1,130596,,244
+Kazakhstan,KZ,KAZ,398,EUR,2024,1,132916,,216
+Kazakhstan,KZ,KAZ,398,EUR,2025,1,134735,,187
+Kenya,KE,KEN,404,AFR,2023,0,,,
+Kenya,KE,KEN,404,AFR,2024,0,,,
+Kenya,KE,KEN,404,AFR,2025,1,206427,0,7873
+Kiribati,KI,KIR,296,WPR,2023,0,,,
+Kiribati,KI,KIR,296,WPR,2024,0,,,
+Kiribati,KI,KIR,296,WPR,2025,0,,,
+Kuwait,KW,KWT,414,EMR,2023,0,,,
+Kuwait,KW,KWT,414,EMR,2024,0,,,
+Kuwait,KW,KWT,414,EMR,2025,0,,,
+Kyrgyzstan,KG,KGZ,417,EUR,2023,1,31500,866,312
+Kyrgyzstan,KG,KGZ,417,EUR,2024,1,31710,1386,195
+Kyrgyzstan,KG,KGZ,417,EUR,2025,1,33428,1638,198
+Lao People's Democratic Republic,LA,LAO,418,WPR,2023,0,,,
+Lao People's Democratic Republic,LA,LAO,418,WPR,2024,0,,,
+Lao People's Democratic Republic,LA,LAO,418,WPR,2025,0,,,
+Latvia,LV,LVA,428,EUR,2023,,,,
+Latvia,LV,LVA,428,EUR,2024,1,,,
+Latvia,LV,LVA,428,EUR,2025,1,25600,431,29
+Lebanon,LB,LBN,422,EMR,2023,0,,,
+Lebanon,LB,LBN,422,EMR,2024,0,,,
+Lebanon,LB,LBN,422,EMR,2025,1,22957,2660,7
+Lesotho,LS,LSO,426,AFR,2023,0,,,
+Lesotho,LS,LSO,426,AFR,2024,0,,,
+Lesotho,LS,LSO,426,AFR,2025,,,,
+Liberia,LR,LBR,430,AFR,2023,1,246,0,0
+Liberia,LR,LBR,430,AFR,2024,0,,,
+Liberia,LR,LBR,430,AFR,2025,0,,,
+Libya,LY,LBY,434,EMR,2023,0,,,
+Libya,LY,LBY,434,EMR,2024,0,,,
+Libya,LY,LBY,434,EMR,2025,0,,,
+Lithuania,LT,LTU,440,EUR,2023,,,,
+Lithuania,LT,LTU,440,EUR,2024,1,,,
+Lithuania,LT,LTU,440,EUR,2025,0,,,
+Luxembourg,LU,LUX,442,EUR,2023,1,,,
+Luxembourg,LU,LUX,442,EUR,2024,1,,,
+Luxembourg,LU,LUX,442,EUR,2025,,,,
+Madagascar,MG,MDG,450,AFR,2023,0,,,
+Madagascar,MG,MDG,450,AFR,2024,0,,,
+Madagascar,MG,MDG,450,AFR,2025,0,,,
+Malawi,MW,MWI,454,AFR,2023,0,,,
+Malawi,MW,MWI,454,AFR,2024,0,,,
+Malawi,MW,MWI,454,AFR,2025,0,,,
+Malaysia,MY,MYS,458,WPR,2023,0,,,
+Malaysia,MY,MYS,458,WPR,2024,0,,,
+Malaysia,MY,MYS,458,WPR,2025,0,,,
+Maldives,MV,MDV,462,SEA,2023,0,,,
+Maldives,MV,MDV,462,SEA,2024,0,,,
+Maldives,MV,MDV,462,SEA,2025,1,10,,
+Mali,ML,MLI,466,AFR,2023,0,,,
+Mali,ML,MLI,466,AFR,2024,0,,,
+Mali,ML,MLI,466,AFR,2025,0,,,
+Malta,MT,MLT,470,EUR,2023,1,0,0,0
+Malta,MT,MLT,470,EUR,2024,1,,,
+Malta,MT,MLT,470,EUR,2025,1,,,
+Marshall Islands,MH,MHL,584,WPR,2023,1,,2,2
+Marshall Islands,MH,MHL,584,WPR,2024,0,,,
+Marshall Islands,MH,MHL,584,WPR,2025,0,,,
+Mauritania,MR,MRT,478,AFR,2023,0,,,
+Mauritania,MR,MRT,478,AFR,2024,,,,
+Mauritania,MR,MRT,478,AFR,2025,0,,,
+Mauritius,MU,MUS,480,AFR,2023,0,,,
+Mauritius,MU,MUS,480,AFR,2024,0,,,
+Mauritius,MU,MUS,480,AFR,2025,1,12685,646,15
+Mexico,MX,MEX,484,AMR,2023,0,,,
+Mexico,MX,MEX,484,AMR,2024,0,,,
+Mexico,MX,MEX,484,AMR,2025,0,,,
+Micronesia (Federated States of),FM,FSM,583,WPR,2023,,,,
+Micronesia (Federated States of),FM,FSM,583,WPR,2024,1,,,
+Micronesia (Federated States of),FM,FSM,583,WPR,2025,,,,
+Monaco,MC,MCO,492,EUR,2023,,,,
+Monaco,MC,MCO,492,EUR,2024,,,,
+Monaco,MC,MCO,492,EUR,2025,,,,
+Mongolia,MN,MNG,496,WPR,2023,1,17533,135,222
+Mongolia,MN,MNG,496,WPR,2024,1,15923,134,168
+Mongolia,MN,MNG,496,WPR,2025,1,17907,213,182
+Montenegro,ME,MNE,499,EUR,2023,1,1,,
+Montenegro,ME,MNE,499,EUR,2024,0,,,
+Montenegro,ME,MNE,499,EUR,2025,1,6329,6326,3
+Morocco,MA,MAR,504,EMR,2023,0,,,
+Morocco,MA,MAR,504,EMR,2024,0,,,
+Morocco,MA,MAR,504,EMR,2025,,,,
+Mozambique,MZ,MOZ,508,AFR,2023,0,,,
+Mozambique,MZ,MOZ,508,AFR,2024,0,,,
+Mozambique,MZ,MOZ,508,AFR,2025,0,,,
+Myanmar,MM,MMR,104,SEA,2023,0,,,
+Myanmar,MM,MMR,104,SEA,2024,0,,,
+Myanmar,MM,MMR,104,SEA,2025,0,,,
+Namibia,NA,NAM,516,AFR,2023,0,,,
+Namibia,NA,NAM,516,AFR,2024,0,,,
+Namibia,NA,NAM,516,AFR,2025,,,,
+Naoero,NR,NRU,520,WPR,2023,0,,,
+Naoero,NR,NRU,520,WPR,2024,,,,
+Naoero,NR,NRU,520,WPR,2025,,,,
+Nepal,NP,NPL,524,SEA,2023,0,,,
+Nepal,NP,NPL,524,SEA,2024,0,,,
+Nepal,NP,NPL,524,SEA,2025,0,,,
+Netherlands (Kingdom of the),NL,NLD,528,EUR,2023,1,18,,
+Netherlands (Kingdom of the),NL,NLD,528,EUR,2024,1,172165,13489,20
+Netherlands (Kingdom of the),NL,NLD,528,EUR,2025,,,,
+New Caledonia,NC,NCL,540,WPR,2023,0,,,
+New Caledonia,NC,NCL,540,WPR,2024,0,,,
+New Caledonia,NC,NCL,540,WPR,2025,,,,
+New Zealand,NZ,NZL,554,WPR,2023,1,,,
+New Zealand,NZ,NZL,554,WPR,2024,1,,,
+New Zealand,NZ,NZL,554,WPR,2025,1,5,,
+Nicaragua,NI,NIC,558,AMR,2023,1,98,98,16
+Nicaragua,NI,NIC,558,AMR,2024,,,,
+Nicaragua,NI,NIC,558,AMR,2025,,,,
+Niger,NE,NER,562,AFR,2023,0,,,
+Niger,NE,NER,562,AFR,2024,0,,,
+Niger,NE,NER,562,AFR,2025,0,,,
+Nigeria,NG,NGA,566,AFR,2023,0,,,
+Nigeria,NG,NGA,566,AFR,2024,0,,,
+Nigeria,NG,NGA,566,AFR,2025,0,,,
+Niue,NU,NIU,570,WPR,2023,1,0,0,0
+Niue,NU,NIU,570,WPR,2024,,,,
+Niue,NU,NIU,570,WPR,2025,,,,
+North Macedonia,MK,MKD,807,EUR,2023,0,,,
+North Macedonia,MK,MKD,807,EUR,2024,0,,,
+North Macedonia,MK,MKD,807,EUR,2025,1,19921,,
+Northern Mariana Islands,MP,MNP,580,WPR,2023,1,235,5,3
+Northern Mariana Islands,MP,MNP,580,WPR,2024,0,,,
+Northern Mariana Islands,MP,MNP,580,WPR,2025,,,,
+Norway,NO,NOR,578,EUR,2023,,,,
+Norway,NO,NOR,578,EUR,2024,0,,,
+Norway,NO,NOR,578,EUR,2025,0,,,
+Oman,OM,OMN,512,EMR,2023,0,,,
+Oman,OM,OMN,512,EMR,2024,0,,,
+Oman,OM,OMN,512,EMR,2025,0,,,
+Pakistan,PK,PAK,586,EMR,2023,0,,,
+Pakistan,PK,PAK,586,EMR,2024,0,,,
+Pakistan,PK,PAK,586,EMR,2025,0,,,
+Palau,PW,PLW,585,WPR,2023,0,,,
+Palau,PW,PLW,585,WPR,2024,0,,,
+Palau,PW,PLW,585,WPR,2025,0,,,
+Panama,PA,PAN,591,AMR,2023,1,,,
+Panama,PA,PAN,591,AMR,2024,1,,,
+Panama,PA,PAN,591,AMR,2025,1,148,,
+Papua New Guinea,PG,PNG,598,WPR,2023,0,,,
+Papua New Guinea,PG,PNG,598,WPR,2024,0,,,
+Papua New Guinea,PG,PNG,598,WPR,2025,0,,,
+Paraguay,PY,PRY,600,AMR,2023,1,34639,13897,95
+Paraguay,PY,PRY,600,AMR,2024,1,35770,14411,103
+Paraguay,PY,PRY,600,AMR,2025,1,56139,19537,207
+Peru,PE,PER,604,AMR,2023,0,,,
+Peru,PE,PER,604,AMR,2024,0,,,
+Peru,PE,PER,604,AMR,2025,0,,,
+Philippines,PH,PHL,608,WPR,2023,1,593827,,20472
+Philippines,PH,PHL,608,WPR,2024,1,443528,,15595
+Philippines,PH,PHL,608,WPR,2025,1,449179,0,15819
+Poland,PL,POL,616,EUR,2023,1,472,,
+Poland,PL,POL,616,EUR,2024,1,403167,,
+Poland,PL,POL,616,EUR,2025,1,,,483
+Portugal,PT,PRT,620,EUR,2023,1,,,53
+Portugal,PT,PRT,620,EUR,2024,1,118947,8107,146
+Portugal,PT,PRT,620,EUR,2025,1,119046,1716,127
+Puerto Rico,PR,PRI,630,AMR,2023,0,,,
+Puerto Rico,PR,PRI,630,AMR,2024,,,,
+Puerto Rico,PR,PRI,630,AMR,2025,,,,
+Qatar,QA,QAT,634,EMR,2023,0,,,
+Qatar,QA,QAT,634,EMR,2024,0,,,
+Qatar,QA,QAT,634,EMR,2025,,,,
+Republic of Korea,KR,KOR,410,WPR,2023,1,,,
+Republic of Korea,KR,KOR,410,WPR,2024,1,,,
+Republic of Korea,KR,KOR,410,WPR,2025,1,,,
+Republic of Moldova,MD,MDA,498,EUR,2023,1,33820,33820,186
+Republic of Moldova,MD,MDA,498,EUR,2024,1,33596,170,139
+Republic of Moldova,MD,MDA,498,EUR,2025,1,31709,299,124
+Romania,RO,ROU,642,EUR,2023,1,243392,,703
+Romania,RO,ROU,642,EUR,2024,1,244735,,712
+Romania,RO,ROU,642,EUR,2025,1,239691,,525
+Russian Federation,RU,RUS,643,EUR,2023,1,1764618,61523,5055
+Russian Federation,RU,RUS,643,EUR,2024,1,,68699,4697
+Russian Federation,RU,RUS,643,EUR,2025,1,,,
+Rwanda,RW,RWA,646,AFR,2023,1,32853,22535,565
+Rwanda,RW,RWA,646,AFR,2024,1,36021,28610,891
+Rwanda,RW,RWA,646,AFR,2025,1,39355,33918,964
+Saint Kitts and Nevis,KN,KNA,659,AMR,2023,0,,,
+Saint Kitts and Nevis,KN,KNA,659,AMR,2024,,,,
+Saint Kitts and Nevis,KN,KNA,659,AMR,2025,,,,
+Saint Lucia,LC,LCA,662,AMR,2023,0,,,
+Saint Lucia,LC,LCA,662,AMR,2024,0,,,
+Saint Lucia,LC,LCA,662,AMR,2025,,,,
+Saint Vincent and the Grenadines,VC,VCT,670,AMR,2023,1,2,2,2
+Saint Vincent and the Grenadines,VC,VCT,670,AMR,2024,,,,
+Saint Vincent and the Grenadines,VC,VCT,670,AMR,2025,,,,
+Samoa,WS,WSM,882,WPR,2023,0,,,
+Samoa,WS,WSM,882,WPR,2024,0,,,
+Samoa,WS,WSM,882,WPR,2025,,,,
+San Marino,SM,SMR,674,EUR,2023,,,,
+San Marino,SM,SMR,674,EUR,2024,,,,
+San Marino,SM,SMR,674,EUR,2025,,,,
+Sao Tome and Principe,ST,STP,678,AFR,2023,1,7,0,0
+Sao Tome and Principe,ST,STP,678,AFR,2024,1,15,0,0
+Sao Tome and Principe,ST,STP,678,AFR,2025,0,,,
+Saudi Arabia,SA,SAU,682,EMR,2023,1,129,129,88
+Saudi Arabia,SA,SAU,682,EMR,2024,1,,,127
+Saudi Arabia,SA,SAU,682,EMR,2025,1,,,94
+Senegal,SN,SEN,686,AFR,2023,0,,,
+Senegal,SN,SEN,686,AFR,2024,0,,,
+Senegal,SN,SEN,686,AFR,2025,0,,,
+Serbia,RS,SRB,688,EUR,2023,1,109203,5169,24
+Serbia,RS,SRB,688,EUR,2024,1,98041,4282,17
+Serbia,RS,SRB,688,EUR,2025,,,,
+Seychelles,SC,SYC,690,AFR,2023,0,,,
+Seychelles,SC,SYC,690,AFR,2024,0,,,
+Seychelles,SC,SYC,690,AFR,2025,1,845,842,3
+Sierra Leone,SL,SLE,694,AFR,2023,0,,,
+Sierra Leone,SL,SLE,694,AFR,2024,0,,,
+Sierra Leone,SL,SLE,694,AFR,2025,0,,,
+Singapore,SG,SGP,702,WPR,2023,0,,,
+Singapore,SG,SGP,702,WPR,2024,0,,,
+Singapore,SG,SGP,702,WPR,2025,0,,,
+Sint Maarten (Dutch part),SX,SXM,534,AMR,2023,0,,,
+Sint Maarten (Dutch part),SX,SXM,534,AMR,2024,0,,,
+Sint Maarten (Dutch part),SX,SXM,534,AMR,2025,,,,
+Slovakia,SK,SVK,703,EUR,2023,1,10,7,2
+Slovakia,SK,SVK,703,EUR,2024,0,,,
+Slovakia,SK,SVK,703,EUR,2025,1,4,1,3
+Slovenia,SI,SVN,705,EUR,2023,1,583,583,1
+Slovenia,SI,SVN,705,EUR,2024,1,22609,1103,2
+Slovenia,SI,SVN,705,EUR,2025,1,21223,595,1
+Solomon Islands,SB,SLB,90,WPR,2023,,,,
+Solomon Islands,SB,SLB,90,WPR,2024,0,,,
+Solomon Islands,SB,SLB,90,WPR,2025,0,,,
+Somalia,SO,SOM,706,EMR,2023,0,,,
+Somalia,SO,SOM,706,EMR,2024,0,,,
+Somalia,SO,SOM,706,EMR,2025,0,,,
+South Africa,ZA,ZAF,710,AFR,2023,1,,,
+South Africa,ZA,ZAF,710,AFR,2024,0,,,
+South Africa,ZA,ZAF,710,AFR,2025,0,,,
+South Sudan,SS,SSD,728,AFR,2023,0,,,
+South Sudan,SS,SSD,728,AFR,2024,0,,,
+South Sudan,SS,SSD,728,AFR,2025,0,,,
+Spain,ES,ESP,724,EUR,2023,,,,
+Spain,ES,ESP,724,EUR,2024,0,,,
+Spain,ES,ESP,724,EUR,2025,,,,
+Sri Lanka,LK,LKA,144,SEA,2023,0,,,
+Sri Lanka,LK,LKA,144,SEA,2024,0,,,
+Sri Lanka,LK,LKA,144,SEA,2025,0,,,
+Sudan,SD,SDN,729,EMR,2023,0,,,
+Sudan,SD,SDN,729,EMR,2024,0,,,
+Sudan,SD,SDN,729,EMR,2025,0,,,
+Suriname,SR,SUR,740,AMR,2023,0,,,
+Suriname,SR,SUR,740,AMR,2024,0,,,
+Suriname,SR,SUR,740,AMR,2025,0,,,
+Sweden,SE,SWE,752,EUR,2023,0,,,
+Sweden,SE,SWE,752,EUR,2024,0,,,
+Sweden,SE,SWE,752,EUR,2025,0,,,
+Switzerland,CH,CHE,756,EUR,2023,0,,,
+Switzerland,CH,CHE,756,EUR,2024,0,,,
+Switzerland,CH,CHE,756,EUR,2025,0,,,
+Syrian Arab Republic,SY,SYR,760,EMR,2023,1,2,2,2
+Syrian Arab Republic,SY,SYR,760,EMR,2024,0,,,
+Syrian Arab Republic,SY,SYR,760,EMR,2025,0,,,
+Tajikistan,TJ,TJK,762,EUR,2023,1,,,99
+Tajikistan,TJ,TJK,762,EUR,2024,1,32397,22398,127
+Tajikistan,TJ,TJK,762,EUR,2025,1,,,109
+Thailand,TH,THA,764,SEA,2023,0,,,
+Thailand,TH,THA,764,SEA,2024,1,,,
+Thailand,TH,THA,764,SEA,2025,1,523509,81249,4152
+Timor-Leste,TL,TLS,626,SEA,2023,0,,,
+Timor-Leste,TL,TLS,626,SEA,2024,0,,,
+Timor-Leste,TL,TLS,626,SEA,2025,0,,,
+Togo,TG,TGO,768,AFR,2023,0,,,
+Togo,TG,TGO,768,AFR,2024,0,,,
+Togo,TG,TGO,768,AFR,2025,0,,,
+Tokelau,TK,TKL,772,WPR,2023,1,0,0,0
+Tokelau,TK,TKL,772,WPR,2024,,,,
+Tokelau,TK,TKL,772,WPR,2025,,,,
+Tonga,TO,TON,776,WPR,2023,0,,,
+Tonga,TO,TON,776,WPR,2024,,,,
+Tonga,TO,TON,776,WPR,2025,,,,
+Trinidad and Tobago,TT,TTO,780,AMR,2023,0,,,
+Trinidad and Tobago,TT,TTO,780,AMR,2024,0,,,
+Trinidad and Tobago,TT,TTO,780,AMR,2025,0,,,
+Tunisia,TN,TUN,788,EMR,2023,0,,,
+Tunisia,TN,TUN,788,EMR,2024,,,,
+Tunisia,TN,TUN,788,EMR,2025,,,,
+Turkmenistan,TM,TKM,795,EUR,2023,1,256,,
+Turkmenistan,TM,TKM,795,EUR,2024,0,,,
+Turkmenistan,TM,TKM,795,EUR,2025,0,,,
+Turks and Caicos Islands,TC,TCA,796,AMR,2023,0,,,
+Turks and Caicos Islands,TC,TCA,796,AMR,2024,,,,
+Turks and Caicos Islands,TC,TCA,796,AMR,2025,0,,,
+Tuvalu,TV,TUV,798,WPR,2023,1,0,0,0
+Tuvalu,TV,TUV,798,WPR,2024,,,,
+Tuvalu,TV,TUV,798,WPR,2025,,,,
+Türkiye,TR,TUR,792,EUR,2023,1,,,
+Türkiye,TR,TUR,792,EUR,2024,1,,,
+Türkiye,TR,TUR,792,EUR,2025,1,491684,6216,294
+Uganda,UG,UGA,800,AFR,2023,0,,,
+Uganda,UG,UGA,800,AFR,2024,0,,,
+Uganda,UG,UGA,800,AFR,2025,1,,,
+Ukraine,UA,UKR,804,EUR,2023,0,,,
+Ukraine,UA,UKR,804,EUR,2024,1,,,2516
+Ukraine,UA,UKR,804,EUR,2025,0,,,
+United Arab Emirates,AE,ARE,784,EMR,2023,1,,,
+United Arab Emirates,AE,ARE,784,EMR,2024,1,,,
+United Arab Emirates,AE,ARE,784,EMR,2025,0,,,
+United Kingdom,GB,GBR,826,EUR,2023,1,,,
+United Kingdom,GB,GBR,826,EUR,2024,1,,,
+United Kingdom,GB,GBR,826,EUR,2025,1,,,
+United Republic of Tanzania,TZ,TZA,834,AFR,2023,1,50073,4604,0
+United Republic of Tanzania,TZ,TZA,834,AFR,2024,1,39089,1971,910
+United Republic of Tanzania,TZ,TZA,834,AFR,2025,1,20524,0,1349
+United States of America,US,USA,840,AMR,2023,1,,,
+United States of America,US,USA,840,AMR,2024,,,,
+United States of America,US,USA,840,AMR,2025,,,,
+Uruguay,UY,URY,858,AMR,2023,1,34677,4683,133
+Uruguay,UY,URY,858,AMR,2024,0,,,
+Uruguay,UY,URY,858,AMR,2025,0,,,
+Uzbekistan,UZ,UZB,860,EUR,2023,0,,,
+Uzbekistan,UZ,UZB,860,EUR,2024,,,,
+Uzbekistan,UZ,UZB,860,EUR,2025,1,161577,,331
+Vanuatu,VU,VUT,548,WPR,2023,0,,,
+Vanuatu,VU,VUT,548,WPR,2024,0,,,
+Vanuatu,VU,VUT,548,WPR,2025,0,,,
+Venezuela (Bolivarian Republic of),VE,VEN,862,AMR,2023,0,,,
+Venezuela (Bolivarian Republic of),VE,VEN,862,AMR,2024,1,,,
+Venezuela (Bolivarian Republic of),VE,VEN,862,AMR,2025,0,,,
+Viet Nam,VN,VNM,704,WPR,2023,,,,
+Viet Nam,VN,VNM,704,WPR,2024,0,,,
+Viet Nam,VN,VNM,704,WPR,2025,0,,,
+Yemen,YE,YEM,887,EMR,2023,0,,,
+Yemen,YE,YEM,887,EMR,2024,0,,,
+Yemen,YE,YEM,887,EMR,2025,0,,,
+Zambia,ZM,ZMB,894,AFR,2023,0,,,
+Zambia,ZM,ZMB,894,AFR,2024,0,,,
+Zambia,ZM,ZMB,894,AFR,2025,0,,,
+Zimbabwe,ZW,ZWE,716,AFR,2023,0,,,
+Zimbabwe,ZW,ZWE,716,AFR,2024,1,,,
+Zimbabwe,ZW,ZWE,716,AFR,2025,0,,,
+"occupied Palestinian terr., incl. east Jerusalem",PS,PSE,275,EMR,2023,0,,,
+"occupied Palestinian terr., incl. east Jerusalem",PS,PSE,275,EMR,2024,0,,,
+"occupied Palestinian terr., incl. east Jerusalem",PS,PSE,275,EMR,2025,1,5,0,5

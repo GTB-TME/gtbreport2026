@@ -1,0 +1,2272 @@
+---
+title: "4: Financing for TB prevention, diagnostic and treatment services"
+author: "Takuya Yamanaka"
+date: "`r Sys.Date()`"
+knit: (function(inputFile, encoding) {
+      out_dir <- "./local";
+      rmarkdown::render(inputFile,
+                        encoding=encoding,
+                        output_dir=file.path(dirname(inputFile), out_dir))}) # added this to define a location for saving outputs
+output:
+  html_fragment:
+    # Do not include a table of contents
+    toc: no
+    # Set standard figure width to 12 inches
+    fig_width: 12
+    # Do not write figure captions
+    fig_caption: FALSE
+    # to save intermediate .png
+    keep_md: FALSE    
+    # Don't embed external resources (stylesheets, JS libraries) in the output 
+    self_contained: False
+    # Don't include <div> tags around a header and the content found until the next header
+    section_divs: FALSE  
+   
+---
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+# Set chunk options.
+# Results "asis" is useful to output markdown from a function
+# Suppress messages, warnings and also the ## at the beginning of printed text
+knitr::opts_chunk$set(echo = FALSE, 
+                      results = "asis",
+                      message = FALSE,
+                      warning = FALSE, # for debugging!
+                      
+                      # Settings for better output of whomapper .png maps
+                      fig.width = 10,
+                      fig.height = 5,
+                      dpi = 350
+                      )
+
+
+# Kill any attempt at using factors, unless we explicitly want them!
+options(stringsAsFactors=FALSE)
+
+# Load R functions ----
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+source(here::here("report/functions/html_links.R"))
+source(here::here("report/functions/output_ggplot.R"))
+
+# Set up the running environment ----
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#source("io/set_environment.r")  # particular to each person so this file is in the ignore list
+# Load packages ----
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(RColorBrewer)
+# devtools::install_github("yamanakatakuya/whomapR")
+# from https://github.com/yamanakatakuya/whomapR
+library(whomapR)
+library(Cairo)
+library(gtbreport) 
+library(jsonlite)
+library(ggthemes)
+library(stringr) # for wrapping country names in fig 4.10
+
+# Load the minimum data sets for chapter 4 ----
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+source(here::here('report/ch4-1_prepare_data.R'))
+
+
+# Show static chart in addition to Kendo chart?
+show_static = F
+
+# Save underlying data files as CSV and charts as PDF files?
+pdf_csv_folder = here::here("report/local/figures/ch4.1") # Local folder only
+save_pdf = TRUE
+save_cairo = TRUE
+save_csv = TRUE
+
+# Create the output folder (only if it doesn't yet exist)
+dir.create(pdf_csv_folder, showWarnings = FALSE, recursive = TRUE)
+
+```
+
+```{r css_js}
+# Add standard stylesheets and javascript to support kendo
+cat(writeLines(readLines(here::here("report/resources/headers.htm"))))
+```
+
+# 4.1 Financing for TB prevention, diagnostic and treatment services
+
+<span class="red">**Draft! Prepared `r Sys.Date()` using country-reported data snapshot files from `r format(as.Date(snapshot_date), format="%d %B %Y")`!**</span>
+
+
+Progress in reducing the burden of tuberculosis (TB) disease requires adequate and sustained funding over many years. Since 2002, the World Health Organization (WHO) has monitored funding for TB prevention, diagnostic and treatment services using data reported by national TB programmes (NTPs) through annual rounds of global TB data collection. Findings have been published in global TB reports and peer-reviewed publications (`r ref_lnk("1&#8211;3")`). Recognizing that not all international donor funding for TB is captured in the data reported to WHO, this analysis is complemented each year by analysis of donor funding that is reported to the Organisation for Economic Co-operation and Development (see <span class="red">Section 4.2</span>). Since 2005, funding for TB research has been monitored by Treatment Action Group, with findings published in an annual report (`r ref_lnk("4")`).
+
+At the second United Nations (UN) high-level meeting on TB in 2023, Member States committed to mobilizing at least US\$&nbsp;22 billion per year for TB prevention, diagnostic and treatment services by 2027, and US\$&nbsp;35 billion per year by 2030. A target of US\$&nbsp;5 billion per year by 2027 was set for investment in TB research (`r ref_lnk("5")`). These targets were based on estimates of resource needs set out in the latest Global Plan to End TB produced by the Stop TB Partnership (`r ref_lnk("6")`).  
+
+The global landscape of funding for international development, including the health sector, changed substantially in 2025 (`r ref_lnk("7, 8")`). Overall, official development assistance fell by 23% between 2024 and 2025 (`r ref_lnk("9")`). The amount of funding raised in 2025 for the eighth replenishment of The Global Fund, to fund grants for HIV, malaria and TB in the period 2026–2028, was 20% lower than the amount raised for the previous cycle (`r ref_lnk("8, 10")`). In this webpage, country-reported funding data for 2025 are used to assess whether these changes in the donor landscape were reflected in funding reported by NTPs, including through aggregate trends and country-specific analyses. 
+
+## Reported data
+
+Data on funding available for TB prevention, diagnostic and treatment services, by source of funding and major category of expenditure, were reported to WHO by `r n_country` low and middle-income countries (LMICs) for the period `r start_year`&ndash;`r report_year - 1`  (`r lnk("Fig. 4.1.1")`). These countries accounted for `r ftb(notif_included_prop)`% of reported TB cases globally in `r report_year - 1`. 
+
+
+### `r anch("Fig. 4.1.1")` <span class="fig" style="color:#F21905">Fig. 4.1.1</span> The `r n_country` low- and middle-income countries^a^ included in WHO analyses of TB financing, 2015&ndash;`r report_year - 1`
+
+``` {r fig_4.1.1, fig.alt="Map of countries included in the analysis of TB financing"}
+
+f4.1.1_plot <- whomapper(f4.1.1_data , 
+                              colours = c("#99d8c9","#ffffff" ),
+        na_label = 'Not included', na_col = 'grey',
+       legend_title = "") 
+
+output_ggplot(f4.1.1_plot, f4.1.1_data, show_static = T, pdf_csv_folder, save_csv, save_pdf)
+```
+
+<div class = "footnote">^a^ 
+In the most recent classification of countries by income group published by the World Bank (`r ref_lnk("11")`), the Russian Federation was categorized as a high-income country. It was included in all analyses because it was an upper-middle-income country for most of the period `r start_year`&ndash;`r report_year - 1`, is in WHO’s list of high burden countries for drug-resistant TB and was one of the three countries in WHO’s list of global TB watchlist countries until 2025 (having been in WHO’s list of high TB burden countries until 2020). For more details about WHO’s lists of high burden countries for TB, drug-resistant TB and TB/HIV, see <span class="red">Annex 3</span> of the core report document.</div>
+
+<hr />
+<br />
+
+## Funding available for TB prevention, diagnostic and treatment services, by source
+
+Funding available for TB prevention, diagnostic and treatment services in LMICs has remained well below the global targets set at the 2023 UN high-level meeting (`r lnk("Fig. 4.1.2")`). In `r report_year - 1`, total funding was US\$&nbsp;`r ftb(f4.1.2_data |> filter(year == report_year - 1 & name == "tot") |> summarise(sum(value)))` billion, an increase of US\$&nbsp;`r ftb(f4.1.2_data |> filter(year == report_year - 1 & name == "tot") |> summarise(sum(value)) - f4.1.2_data |> filter(year == report_year - 2 & name == "tot") |> summarise(sum(value)))` billion compared with `r report_year - 2`, mainly attributable to increased domestic funding in India, Indonesia and the Russian Federation.
+
+Throughout the period `r start_year`&ndash;`r report_year - 1`, the distribution of funding by source remained broadly unchanged, with domestic sources consistently accounting for the majority of funding (`r lnk("Fig. 4.1.2")`). In `r report_year - 1`, `r ftb(pcnt_domestic$pcnt[pcnt_domestic$year == report_year - 1])`% of the total funding for TB prevention, diagnostic and treatment services was from domestic sources. International donor funding for LMICs remained stable between `r start_year` and `r report_year - 2`, at US\$&nbsp;1.1&ndash;US\$&nbsp;1.3 billion per year. However, it declined from US\$&nbsp;`r ftb(f4.1.2_data |> filter(year == report_year - 2 & name == "ext") |> summarise(sum(value)))` billion in `r report_year - 2` to US\$&nbsp;`r ftb(f4.1.2_data |> filter(year == report_year - 1 & name == "ext") |> summarise(sum(value)))` billion in `r report_year - 1`, a `r ftb(100 - f4.1.2_data |> filter(year == report_year - 1 & name == "ext") |> summarise(sum(value))/f4.1.2_data |> filter(year == report_year - 2 & name == "ext") |> summarise(sum(value)) *100)`% reduction. A similar relative reduction in international donor funding has been reported for HIV, with a decline of 18%, from US\$&nbsp;8.8 billion in 2024 to US$ 7.3 billion in 2025 (`r ref_lnk("12, 13")`).  
+
+
+### `r anch("Fig. 4.1.2")` <span class="fig" style="color:#F21905">Fig. 4.1.2</span> Funding available for TB prevention, diagnostic and treatment services in `r n_country` low- and middle-income countries by source,^a,b,c,d^ 2015&ndash;`r report_year - 1`
+ 
+``` {r f4.1.2b_data , fig.alt="Funding available for TB prevention, diagnostic and treatment by funding source"}
+
+f4.1.2_plot <- f4.1.2_data |>  
+  mutate(line_style = ifelse(name == "tot"|name == "int"|name == "ext", "solid", "dashed")) |> 
+  mutate(name = factor(name, 
+                       levels = c("tot","cf_tot_ghs_plus","int","cf_int_ghs_plus","ext","cf_ext"),
+                       labels = c("Total","Total","Domestic funding","Domestic funding","International donor funding","International donor funding"))) |> 
+  filter(year <= report_year-1) |>
+  ggplot(aes(x=year, y = value, col = name, linetype = line_style)) +
+  geom_line(size=1, alpha=.85) +
+
+  scale_linetype_identity() +
+  scale_y_continuous(name = paste0("Billions (constant ",report_year-1," US$)"),limits= c(0,8), breaks = seq(0,24,2)) +
+  scale_x_continuous("", breaks=seq(start_year,report_year,1),  expand=c(0, .1)) +
+  scale_color_manual(values = c("#00AAAD","#4ABAFC","#E63E13" ))+ #Total = Green, 
+  theme_gtb() +
+  # geom_hline(yintercept =22, size=0.75, col="grey30", 
+  #            lty="dashed", alpha=.85 ) +
+  # annotate("text", x = (start_year+report_year-1)/2, y = 23, label = "Target: US$ 22 billion by 2027",size=4, col="grey30") +
+  # Add a gray line over the x-axis so that all graphs have a line at the bottom
+  annotate("segment", x=-Inf, 
+           xend=Inf, 
+           y=-Inf, 
+           yend=-Inf, 
+           colour = "#BCBCBC")
+
+output_ggplot(f4.1.2_plot, f4.1.2_data, show_static, pdf_csv_folder, save_csv, save_pdf)
+```
+
+<div id="fig_4_1_2b"></div>
+
+
+<div class = "footnote">^a^ Values for `r start_year`&ndash;`r report_year - 2` are higher than those shown in the <a href="https://www.who.int/teams/global-tuberculosis-programme/tb-reports/global-tuberculosis-report-2025/tb-financing/4-1-financing-for-tb-prevention--diagnostic-and-treatment-services"><u>Global Tuberculosis Report `r report_year - 1`</u></a> (`r ref_lnk("14")`), since they have been inflated (for comparability with data for `r report_year - 1`) to constant US\$ values for `r report_year - 1`.<br>
+^b^ The `r n_country` countries included in the analysis accounted for `r ftb(notif_included_prop)`% of TB cases notified globally in `r report_year - 1`. For `r int2word(methods_box |> filter(rcvd_imputation != "Reported data" & (is.na(rcvd_tot)) | (do_not_fill == 1)) |> summarise(n()) |> unlist())` countries (`r ftb(100*(methods_box |> filter(rcvd_imputation != "Reported data" & (is.na(rcvd_tot)) | (do_not_fill == 1)) |> summarise(sum(c_notified, na.rm = T))) / sum(notif_total$c_notified))`% of global TB notifications), funding data for 2025 were not reported to WHO and could not be estimated from available information. For these countries, estimates included only the financial costs associated with inpatient and outpatient treatment.
+<br>^c^ In the latest World Bank income classification, the Russian Federation was categorized as a high-income country (`r ref_lnk("11")`). It was nevertheless included in all analyses because it was classified as an upper-middle-income country for most of the period `r start_year`&ndash;`r report_year - 1`, remains on WHO’s list of high burden countries for drug-resistant TB, and was included in WHO’s list of global TB watchlist countries until 2025 (having been in WHO’s list of high TB burden countries until 2020). Further details on WHO’s lists of high burden countries for TB, drug-resistant TB and TB/HIV are provided in <span class="red">Annex 3</span> of the core report.
+<br>^d^ Domestic funding in this graphic includes funding reported by NTPs and WHO estimates of the financial costs of inpatient and outpatient care required during TB treatment. Further details are provided in `r lnk("Box 4.1")`.</div>
+
+
+<hr />
+<br />
+
+Aggregate estimates of the share of funding from domestic and international sources in LMICs are strongly influenced by Brazil, the Russian Federation, India, China and South Africa (BRICS) (`r lnk("Fig. 4.1.3")`). Together, these countries accounted for US\$&nbsp;`r ftb(domestic_by_grp$int[domestic_by_grp$g_brics == "BRICSᵃ (n=5)"])` billion, or `r ftb((domestic_by_grp$int |> prop.table() %>% '[['(1)) * 100)`% of the total of US\$&nbsp;`r ftb(domestic_by_grp$int |> sum())` billion that was available from domestic sources in `r report_year - 1`. Overall, `r ftb(pcnt_group$pcnt[pcnt_group$group=="brics"])`% of available funding in BRICS was from domestic sources; in Brazil, China and the Russian Federation, all funding was from domestic sources.
+
+In other LMICs, international donor funding remains critical. In `r report_year - 1`, it accounted for `r ftb(100 - (pcnt_group$pcnt[pcnt_group$group=="hb"]))`% of the funding available in the 26 high TB burden and 2 global TB watchlist countries (Gabon and Liberia) outside BRICS, and for `r ftb(100 - (pcnt_group$pcnt[pcnt_group$group=="lic"]))`% of the funding available in low-income countries (LICs). These figures are similar to the share of total funding for the HIV response in LMICs that was provided from international donor sources in `r report_year - 1`, which was 41% (`r ref_lnk("12")`).  The reduction in international donor funding for TB between `r report_year - 2` and `r report_year - 1` primarily impacted high TB burden countries outside BRICS; and within this category, reductions mostly affected lower-middle-income countries in Asia (the WHO South-East Asia and Western Pacific regions). 
+
+
+### `r anch("Fig. 4.1.3")` <span class="fig" style="color:#F21905">Fig. 4.1.3</span> Funding available for TB prevention, diagnostic and treatment services from domestic sources^a^ and international donors in 9 country groups, 2015&ndash;`r report_year - 1`
+
+``` {r f4.1.3_data , fig.alt="Funding available for TB prevention, diagnostic and treatment by funding source across Disease burden and Income groups", fig.height = 12}
+  
+f4.1.3_plot <- f4.1.3_data |> 
+  pivot_longer(cols = c("int","ext")) |> 
+  mutate(
+    name = factor(name, 
+                  levels = c("int","ext"),
+                  labels = c("Domestic funding","International donor funding"))) |> 
+  ggplot(aes(x=year, y = value, col = name)) +
+  geom_line(size=1.5, alpha=.85) +
+  scale_y_continuous(name = paste0("Billions (constant ",report_year-1," US$)")) +
+  expand_limits(y = 0) +
+  scale_x_continuous("", breaks=seq(start_year,report_year - 1,2),  expand=c(0, .1)) +
+  scale_color_manual(values = c("#4ABAFC", "#E63E13" )) +
+  facet_wrap(~grp, ncol = 3, scales = 'free_y', strip.position = "top" , labeller = label_wrap_gen(width = 25) ) +
+  theme_gtb() 
+
+output_ggplot(f4.1.3_plot, f4.1.3_data, show_static, pdf_csv_folder, save_csv, save_pdf)
+```
+<div class="row">
+<div class="col-md-4">
+<div id="fig_4_1_3a"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_4_1_3b"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_4_1_3c"></div>
+</div>
+</div>
+
+<div class="row">
+<div class="col-md-4">
+<div id="fig_4_1_3d"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_4_1_3e"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_4_1_3f"></div>
+</div>
+</div>
+
+<div class="row">
+<div class="col-md-4">
+<div id="fig_4_1_3g"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_4_1_3h"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_4_1_3i"></div>
+</div>
+</div>
+<div class="footnote">BRICS: Brazil, the Russian Federation, India, China, South Africa.<br>
+^a^ Domestic funding in this graphic includes funding reported by NTPs and WHO estimates of the financial costs of inpatient and outpatient care required during TB treatment. Further details are provided in `r lnk("Box 4.1")`.
+<br>^b^ BRICS refers only to the five original member countries of the BRICS group of countries (Brazil, the Russian Federation, India, China and South Africa). Although the group expanded in 2024, analyses in this report are restricted to the original five members.<br>
+^c^ The 2 global TB watchlist countries included are Gabon and Liberia. <br>
+^d^ Asia includes the WHO regions of South-East Asia and the Western Pacific.<br>
+^e^ "Other regions" consists of three WHO regions: the Eastern Mediterranean Region, the European Region and the Region of the Americas.</div>
+
+<br />
+
+The Global Fund is the main source of international donor funding for TB (`r ref_lnk("15")`). In `r report_year - 1`, it accounted for `r ftb(pcnt_gf$pcnt[pcnt_gf$year == report_year - 1])`% of the international donor funding reported by NTPs to WHO. Beyond `r report_year - 1`, funding from The Global Fund for TB is likely to decline. As noted above, US\$&nbsp;12.6 billion was mobilized for HIV, malaria and TB in the Fund’s 2025 replenishment for the 2026-2028 grant cycle, down from US\$&nbsp;15.7 billion for the 2023–2025 cycle (`r ref_lnk("8, 10")`). 
+
+<span class="red">Section 4.2</span></a> provides a more comprehensive analysis of international donor funding for TB during 2013&ndash;`r report_year - 2`, including funding that is not channelled through NTPs (data for `r report_year - 1` are not yet available). During this period, the US government (USG) remained both the largest contributor of funding to The Global Fund and the largest bilateral donor for TB, accounting for approximately 50% of international donor funding for TB overall. 
+
+<hr />
+<br />
+
+
+Trends in domestic and international donor funding for TB vary among the 30 high TB burden countries and 2 global TB watchlist countries (`r lnk("Fig. 4.1.4")`). 
+
+### `r anch("Fig. 4.1.4")` <span class="fig" style="color:#F21905">Fig. 4.1.4</span> Funding available for TB prevention, diagnostic and treatment services in the 30 high TB burden countries and 2 global TB watchlist countries,^a^ disaggregated by source of funding, 2015&ndash;`r report_year - 1`
+
+``` {r f4.1.4_data , fig.alt="Funding available to national TB programmes for TB prevention, diagnostic and treatment services in the 30 high TB burden countries and 3 global TB watchlist countries", fig.height = 15}
+
+f4.1.4_plot <- f4.1.4_data |> 
+  filter(year <= report_year - 1) |>
+  mutate(name = factor(name,
+                       levels = c("rcvd_int","rcvd_ext","rcvd_int_ghs"),
+                       labels = c("Domestic funding (reported by NTP)","International donor funding", "Domestic funding (NTP plus WHO estimates of funding for IP and OP care)")))  |> 
+ggplot(aes(x=year, y = value, col = name)) +
+  # geom_text(x=2015,y=+Inf,aes(label=str_wrap(country, width = 25,indent = 2)), col = "grey", alpha = 0.7,
+  #           vjust = "top", hjust = "middle") +
+  geom_line(size=1, alpha=.75) +
+  scale_y_continuous(name = paste0("Millions (constant ",report_year-1," US$)")) +
+  expand_limits(y = 0) +
+  scale_x_continuous("", breaks=seq(2013,report_year - 1,2),  expand=c(0, .1)) +
+  scale_color_manual(values = c("#4ABAFC", "#E63E13","dodgerblue4"))+
+  facet_wrap(~country, ncol = 5, scales = 'free', strip.position = "top" , labeller = label_wrap_gen(width = 25) ) +
+  # Reduce size of label strip
+  theme(strip.text = element_text(size=3, colour = "black"),
+        # strip.text.x = element_blank(),
+        strip.background = element_blank()
+        )+
+  theme_gtb() 
+
+output_ggplot(f4.1.4_plot, f4.1.4_data, show_static, pdf_csv_folder, save_csv, save_pdf, save_cairo=T) 
+
+```
+<div class="row">
+<div class="col-md-4">
+<div id="fig_4_1_4_AGO"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_4_1_4_BGD"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_4_1_4_BRA"></div>
+</div>
+</div>
+
+<div class="row">
+<div class="col-md-4">
+<div id="fig_4_1_4_KHM"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_4_1_4_CAF"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_4_1_4_CHN"></div>
+</div>
+</div>
+
+<div class="row">
+<div class="col-md-4">
+<div id="fig_4_1_4_COG"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_4_1_4_PRK"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_4_1_4_COD"></div>
+</div>
+</div>
+
+<div class="row">
+<div class="col-md-4">
+<div id="fig_4_1_4_ETH"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_4_1_4_GAB"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_4_1_4_IND"></div>
+</div>
+</div>
+
+<div class="row">
+<div class="col-md-4">
+<div id="fig_4_1_4_IDN"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_4_1_4_KEN"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_4_1_4_LSO"></div>
+</div>
+</div>
+
+<div class="row">
+<div class="col-md-4">
+<div id="fig_4_1_4_LBR"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_4_1_4_MNG"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_4_1_4_MOZ"></div>
+</div>
+</div>
+
+<div class="row">
+<div class="col-md-4">
+<div id="fig_4_1_4_MMR"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_4_1_4_NAM"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_4_1_4_NGA"></div>
+</div>
+</div>
+
+<div class="row">
+<div class="col-md-4">
+<div id="fig_4_1_4_PAK"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_4_1_4_PNG"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_4_1_4_PHL"></div>
+</div>
+</div>
+
+<div class="row">
+<div class="col-md-4">
+<div id="fig_4_1_4_RUS"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_4_1_4_SLE"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_4_1_4_ZAF"></div>
+</div>
+</div>
+
+<div class="row">
+<div class="col-md-4">
+<div id="fig_4_1_4_SSD"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_4_1_4_THA"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_4_1_4_UGA"></div>
+</div>
+</div>
+
+<div class="row">
+<div class="col-md-4">
+<div id="fig_4_1_4_TZA"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_4_1_4_VNM"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_4_1_4_ZMB"></div>
+</div>
+</div>
+
+<div class="footnote">NTP: national TB programme; IP: inpatient; OP: outpatient. The <b><span style="color:#104E8B;">dark blue</span></b> line includes both funding reported by NTPs and WHO estimates of the financial costs of inpatient and outpatient care.
+<br>^a^ The 2 global TB watchlist countries are Gabon and Liberia; for further details, see <span class="fig" style="color:#F21905">Annex 3</span> of the core report document. The Russian Federation is included because it had the largest amount of domestic funding among all countries included in the analysis for the period `r start_year`&ndash;`r report_year - 1`, is in WHO’s list of high burden countries for drug-resistant TB and was one of the three countries in WHO’s list of global TB watchlist countries until 2025 (having been in WHO’s list of high TB burden countries until 2020).</div>
+
+<hr />
+<br />
+
+Given changes in the landscape of international donor funding for health in `r report_year - 1`, trends in funding for TB between `r report_year - 2` and `r report_year - 1` warrant specific attention, especially in countries that received both bilateral USG funding and grants from the Global Fund in 2024. Of the 24 countries that were priorities for USG bilateral funding in 2024, `r f4.1.5_data |> group_by(country) |> slice(1) |> nrow()` have reported data on funding to WHO, both overall and by source, for all years between 2020 and `r report_year - 1`. These data reveal considerable variation in terms of how total funding changed between `r report_year - 2` and `r report_year - 1`, and its distribution by source (`r lnk("Fig. 4.1.5")`). 
+
+
+### `r anch("Fig. 4.1.5")` <span class="fig" style="color:#F21905">Fig. 4.1.5</span> Funding available for TB prevention, diagnostic and treatment services in `r f4.1.5_data |> group_by(country) |> slice(1) |> nrow()` countries^a^ that were USG priorities for bilateral funding for TB and that received grants from the Global Fund in 2024, by source of funding,^b^ 2020&ndash;`r report_year - 1` 
+
+``` {r fig4_1_5, fig.alt="Sources of funding available in USG priority countries", fig.height = 10}
+
+f4.1.5_plot <-  f4.1.5_data |>
+  filter(source != "tot") |>
+  ggplot(aes(x=year, y = value, fill = source)) +
+  geom_col(width = 0.7) +
+  scale_y_continuous(name = paste0("Millions (constant ",report_year-1," US$)")) +
+  expand_limits(y = 0) +
+  scale_x_continuous("", breaks=seq(2020,report_year - 1,1),  expand=c(0, .1)) +
+  scale_fill_manual(values=rev(c( "#00205C","#A6228C","#BBBBBB","#4ABAFC")), labels=rev(c("USG bilateral funding","Global Fund", "Other international funding","Domestic funding\u1d47")),guide = guide_legend(reverse = TRUE)) +
+  facet_wrap(~country, ncol = 5, scales = 'free_y', strip.position = "top" , labeller = label_wrap_gen(width = 25) ) +
+    theme_gtb() +
+    theme(
+      strip.text = element_text(face = "bold"),
+      axis.text.x = element_text(size = 9),
+      legend.position = "bottom"
+    )
+output_ggplot(f4.1.5_plot, f4.1.5_data, show_static, pdf_csv_folder, save_csv, save_pdf) 
+
+```
+
+<div class="row">
+<div class="col-md-4">
+<div id="fig_4_1_5_AFG"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_4_1_5_BGD"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_4_1_5_KHM"></div>
+</div>
+</div>
+
+
+<div class="row">
+<div class="col-md-4">
+<div id="fig_4_1_5_COD"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_4_1_5_ETH"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_4_1_5_IND"></div>
+</div>
+</div>
+
+
+<div class="row">
+<div class="col-md-4">
+<div id="fig_4_1_5_IDN"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_4_1_5_KEN"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_4_1_5_KGZ"></div>
+</div>
+</div>
+
+
+<div class="row">
+<div class="col-md-4">
+<div id="fig_4_1_5_MWI"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_4_1_5_MOZ"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_4_1_5_MMR"></div>
+</div>
+</div>
+
+
+<div class="row">
+<div class="col-md-4">
+<div id="fig_4_1_5_NGA"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_4_1_5_PAK"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_4_1_5_PHL"></div>
+</div>
+</div>
+
+
+<div class="row">
+<div class="col-md-4">
+<div id="fig_4_1_5_ZAF"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_4_1_5_TJK"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_4_1_5_UGA"></div>
+</div>
+</div>
+
+
+<div class="row">
+<div class="col-md-4">
+<div id="fig_4_1_5_UKR"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_4_1_5_TZA"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_4_1_5_VNM"></div>
+</div>
+</div>
+
+
+<div class="row">
+<div class="col-md-4">
+<div id="fig_4_1_5_ZMB"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_4_1_5_ZWE"></div>
+</div>
+</div>
+
+<div class="footnote">^a^ The figure includes `r f4.1.5_data |> group_by(country) |> slice(1) |> nrow()` of the 24 countries that were USG priorities for bilateral funding for TB in 2024. Data were not available for Uzbekistan.
+<br>^b^ Domestic funding in this graphic is based on data reported by NTPs, which typically do not include the financial costs associated with inpatient and outpatient care required during TB treatment.</div>
+
+
+<br />
+
+Five patterns and associated country categories can be distinguished:
+•	An increase in both total funding and funding from USG bilateral sources between 2024 and 2025. This category comprises six countries: Kyrgyzstan, Mozambique, Uganda, the United Republic of Tanzania, Viet Nam and Zambia.
+•	An increase in total funding between 2024 and 2025, despite a reduction in USG bilateral funding, owing to an increase in domestic funding or support from the Global Fund. This category comprises six countries: Afghanistan, the Democratic Republic of the Congo, India, Indonesia, the Philippines and South Africa. 
+•	An increase in total funding in 2025, with no USG funding reported in either 2024 or 2025. This category comprises one country, Pakistan, where funding from Global Fund grants increased between 2024 and 2025. 
+•	A slight decline in total funding between 2024 and 2025, despite a small increase in USG bilateral funding. This category comprises one country, Kenya. 
+•	A reduction in both total funding and USG bilateral funding between 2024 and 2025. This category comprises 9 countries: Bangladesh, Cambodia, Ethiopia, Malawi, Myanmar, Nigeria, Tajikistan, Ukraine and Zimbabwe. 
+
+These patterns highlight the importance of assessing `r report_year - 2`&ndash;`r report_year - 1` financing trends at country level, from both domestic and international donor sources. They also appear to reflect new modalities for USG bilateral funding; for example, the replacement of funding previously provided by the United States Agency for International Development (USAID) with new forms of bilateral support (`r ref_lnk("16, 17")`).  
+
+
+<hr />
+<br />
+
+Among the `r f4.1.6_txt1 |> nrow()` countries that reported receiving USG bilateral funding in `r report_year - 1`, this funding accounted for 20% or more of total available funding in `r f4.1.6_txt3 |> nrow()` countries; the share exceeded 30% in `r knitr::combine_words(f4.1.6_txt2$country_in_text_EN, oxford_comma=FALSE)` (`r lnk("Fig. 4.1.6")`). Fourteen of the `r f4.1.6_txt1 |> nrow()` countries were highly reliant on Global Fund grants in `r report_year - 1`; the exception was India. 
+
+
+### `r anch("Fig. 4.1.6")` <span class="fig" style="color:#F21905">Fig. 4.1.6</span> Sources of funding available^a^ for TB prevention, diagnostic and treatment services in `r report_year-1`, for `r f4.1.6_txt1 |> nrow()` countries^b^ that reported receiving USG bilateral funding and Global Fund grants in `r report_year-1`
+
+``` {r fig4_1_6, fig.alt="Sources of funding available in USG priority countries", fig.height = 10}
+
+f4.1.6_plot <- f4.1.6_data |>
+  filter(str_detect(variable, "_pct")) |>
+  ggplot(aes(country,  value, fill = variable)) +
+  geom_col(width=.8, position = position_stack(reverse = TRUE)) +
+  coord_flip() +
+  theme_gtb() +
+  scale_x_discrete(limits= ctry_order,
+                   labels = function(x) str_wrap(x, width = 20))+
+  xlab("")+ylab("Percentage of available funding (%)")+
+  theme_minimal() +
+  # Prev hues were "#377eb8", "#4daf4a", "#984ea3", "#e41a1c"
+  scale_fill_manual(values=c("#00205C", "#A6228C","#BBBBBB", "#4ABAFC"), labels=c("US bilateral funding", "Global Fund", "Other international funding","Domestic funding")) +
+  theme(legend.position = "bottom")+
+  expand_limits(x=c(0,6))+
+  expand_limits(y=c(0,100))+
+  theme(legend.title = element_blank())+
+  theme(plot.margin=unit(c(0,0,0,0),units="npc"))
+
+output_ggplot(f4.1.6_plot, f4.1.6_data, show_static, pdf_csv_folder, save_csv, save_pdf) 
+
+
+```
+<div id="fig_4_1_6"></div>
+
+<div class="footnote">^a^ Domestic funding in this graphic is based on data reported by NTPs, which typically do not include the financial costs associated with inpatient and outpatient care required during TB treatment.
+<br>^b^ In addition, `r f4.1.6_txt1_1 |> nrow() + f4.1.6_txt1_2 |> nrow()` countries were USG priorities for bilateral funding for TB in 2024 but are not shown in the figure. `r str_to_title(int2word(f4.1.6_txt1_1 |> nrow()))` reported no USG bilateral funding in `r report_year - 1`: `r knitr::combine_words(f4.1.6_txt1_1$country_in_text_EN, oxford_comma=FALSE)`. Data were not reported by `r knitr::combine_words(f4.1.6_txt1_2$country_in_text_EN, oxford_comma=FALSE)`.</div>
+
+
+
+
+<hr />
+<br />
+
+## Funding for TB prevention, diagnostic and treatment services, by category of expenditure
+
+Funding available for the diagnosis and treatment of drug-susceptible TB declined between 2017 and 2022, but increased during 2023&ndash;`r report_year - 1` (`r lnk("Fig. 4.1.7")`). This trend was strongly influenced by patterns in BRICS (`r lnk("Fig. 4.1.8")`), which account for a large share of domestic funding for TB prevention, diagnostic and treatment services (`r lnk("Fig. 4.1.3")`). Funding available for TB preventive treatment has been reported separately since 2019 and remained a small share of total funding throughout the period.
+
+Funding available for treatment and management of drug-resistant TB increased between `r start_year` and 2022, but then declined during 2023&ndash;`r report_year - 1`, returning to around its 2015 level. Explanations include the scale-up of shorter all-oral regimens, including 6-month regimens, which have reduced health service utilization in many settings (see also <span class="red">Fig. 2.4.10</span> of <span class="red">Section 2.4</span>); and reductions in the cost of these regimens.
+
+
+### `r anch("Fig. 4.1.7")` <span class="fig" style="color:#F21905">Fig. 4.1.7</span> Funding available for TB prevention, diagnostic and treatment services in total and by category of expenditure in `r n_country` low- and middle-income countries,^a^ 2015&ndash;`r report_year - 1`
+
+
+``` {r f4.1.7_data , warning = FALSE, fig.alt=" Funding available for TB prevention, diagnostic and treatment"}
+
+f4.1.7_plot <- f4.1.7_data |> 
+  filter(year <= report_year - 1) |> 
+  pivot_longer(cols = -year) |> 
+  # filter(name != "Total") |> 
+  mutate(#year = factor(year), # for the discrete X axis labels
+         name = factor(name, 
+                       levels = c("Total","DSTB","MDR","TBHIV","TPT"#, "Other"
+                                  ),
+                       labels = c("Total","Drug-susceptible TB\u1D47","Drug-resistant TB\u1D9C",
+                                  "TB/HIV","TB preventive treatment (drugs only)\u1D48"#, "Other"
+                                  ))) |> 
+  ggplot(aes(x=year, y = value, col = name)) +
+  geom_line(size=1.7, alpha=.85) +
+  scale_y_continuous(name = paste0("Billions (constant ",report_year-1," US$)"),limits=c(-.05, 7.5), breaks=seq(0,7, 1)) +
+  scale_x_continuous("", breaks=seq(start_year,report_year - 1,2),  expand=c(0, .1)) +
+  scale_color_manual(values = c("#00aaad", "#012352", "#8C0046", "#E58B23", "#0091D1"#,  "#A3ADBA" 
+                                )) +
+  theme_gtb() +
+  # Add a gray line over the x-axis so that all graphs have a line at the bottom
+  annotate("segment", x=-Inf, 
+           xend=Inf, 
+           y=-Inf, 
+           yend=-Inf, 
+           colour = "#BCBCBC")
+
+output_ggplot(f4.1.7_plot, f4.1.7_data, show_static, pdf_csv_folder, save_csv, save_pdf, save_cairo = T)
+
+```
+<div id="fig_4_1_7"></div>
+
+<div class="footnote">^a^ The `r n_country` countries included in the analysis accounted for `r ftb(notif_included_prop)`% of TB cases notified globally in `r report_year - 1`. Although categorized as a high-income country in the latest World Bank income classification (`r ref_lnk("11")`), the Russian Federation was included for consistency with other analyses in this section. Further details are provided in <span class="red">Annex 3</span> of the core report document.<br/>
+^b^ Drug-susceptible TB includes funding reported by NTPs for laboratory equipment and supplies, anti-TB drugs, programme management (including staff and activities), operational research and surveys, patient support and miscellaneous items. It also includes WHO estimates of funding for inpatient and outpatient care for people treated for drug-susceptible TB, based on WHO estimates of the unit costs of bed-days and visits and the average number of outpatient visits and bed-days per TB patient reported by NTPs.<br />
+^c^ Drug-resistant TB includes funding reported by NTPs for anti-TB drugs required for treatment of multidrug and rifampicin-resistant TB, including  pre-extensively drug-resistant TB and extensively drug-resistant TB; programme management (staff and activity) costs specifically required for the provision of care to people with drug-resistant TB; and WHO estimates of funding for inpatient and outpatient care. Funding reported to WHO does not allow the costs of diagnosis of drug-resistant TB to be separately distinguished; laboratory supplies and equipment is allocated to drug-susceptible TB. Rapid tests recommended by WHO can detect TB and RR-TB simultaneously.<br />
+^d^ Data for TB preventive treatment (drugs only) are only available from 2019 onwards.</div>
+
+<hr />
+<br />
+
+### `r anch("Fig. 4.1.8")` <span class="fig" style="color:#F21905">Fig. 4.1.8</span> Funding available for drug-susceptible TB and drug-resistant TB in three country groups, 2015&ndash;`r report_year - 1`
+
+``` {r f4.1.8_data , fig.alt="Funding available for drug-susceptible TB and RR-TB three country groups"}
+f4.1.8_plot <- f4.1.8_data |> 
+  filter(year <= report_year - 1) |> 
+  pivot_longer(cols = c(-year,-g_brics)) |> 
+  mutate(name = stringr::str_to_lower(name)) |> 
+  mutate(name = factor(name, 
+                  levels = c("dstb","mdr"),
+                  labels = c("Drug-susceptible TB\u1D9C","Drug-resistant TB\u1D48"))) |> 
+      ggplot(aes(x=year, y = value, col = name)) +
+      geom_line(size=1.5, alpha=.85) +
+      facet_wrap(~g_brics, scales = 'free_y', strip.position = "top" , labeller = label_wrap_gen(width = 25)) +
+      scale_y_continuous(name = paste0("Millions (constant ",report_year-1," US$)")) +
+      expand_limits(y = 0) +
+      scale_x_continuous("", breaks=seq(start_year,report_year - 1,2),  expand=c(0, .1)) +
+      # Prevoius colors were "#012352", "#8C0046"
+      scale_color_manual(values = c("#4ABAFC", "#E63E13")) + 
+      theme_gtb() +
+      # Add a gray line over the x-axis so that all graphs have a line at the bottom
+      annotate("segment", x=-Inf, 
+               xend=Inf, 
+               y=-Inf, 
+               yend=-Inf, 
+               colour = "#BCBCBC")
+
+
+output_ggplot(f4.1.8_plot, f4.1.8_data, show_static, pdf_csv_folder, save_csv, save_pdf, save_cairo = T)
+```
+<div class="row">
+<div class="col-md-4">
+<div id="fig_4_1_8a"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_4_1_8b"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_4_1_8c"></div>
+</div>
+</div>
+
+<div class="footnote">BRICS: Brazil, the Russian Federation, India, China, South Africa.<br>
+^a^ BRICS refers to the five original members countries; analysis in this report is restricted to these countries.<br>
+^b^ The 2 global TB watchlist countries included are Gabon and Liberia.<br />
+^c,d^ The categories of drug-susceptible TB and drug-resistant TB categories are defined in `r lnk("Fig. 4.1.7")`</div>
+
+
+<hr />
+<br />
+
+## Funding gaps for implementation of national strategic plans for TB
+
+Data about required budgets and expected funding for the implementation of national strategic plans for TB, and associated sources of funding, are reported to WHO by NTPs as part of WHO’s annual rounds of global TB data collection. Funding gaps, as identified by NTPs, were estimated based on the difference between (i) the required budget and (ii) the expected level of funding.
+
+In `r report_year`, `r countries_with_gaps` of the `r n_country` LMICs reported that funding was not sufficient for full implementation of their national strategic plans for TB (`r lnk("Fig. 4.1.9")`). 
+
+
+### `r anch("Fig. 4.1.9")`<span class="red">Fig. 4.1.9</span> The `r n_country` low- and middle-income countries^a^ that did and did not report funding gaps for full implementation of their national strategic plans for TB in `r report_year`
+
+```{r fig_4.1.9, fig.alt="Map showing which countries reported funding gap"}
+
+f4.1.9_plot <- f4.1.9_data |> 
+  
+  whomapper(colours = palatte_fig4.1.9,
+         legend_title = "Country response")
+
+output_ggplot(f4.1.9_plot, f4.1.9_data, show_static = TRUE, pdf_csv_folder, save_csv, save_pdf)
+
+
+```
+
+<div class="footnote">^a^ The `r n_country` countries accounted for `r ftb(notif_included_prop)`% of the global number of notified cases of TB in `r report_year - 1`. In the most recent classification of countries by income group published by the World Bank (`r ref_lnk("11")`), the Russian Federation was categorized as a high-income country. It was included in all analyses because it was an upper-middle-income country for most of the period `r start_year`&ndash;`r report_year - 1`, is in WHO’s list of high burden countries for drug-resistant TB and was one of the three countries in WHO’s list of global TB watchlist countries until 2025 (having been in WHO’s list of high TB burden countries until 2020). For more details about WHO’s lists of high burden countries for TB, drug-resistant TB and TB/HIV, see <span class="red">Annex 3</span> of the core report document.</div>
+
+<hr />
+<br />
+ 
+The combined total of the funding gaps reported by these `r countries_with_gaps` countries for `r report_year` was US\$&nbsp;`r latest_year_budgetgap_bn` billion. The largest gaps were reported by countries in the WHO African and Western Pacific regions. In terms of country income groups, the largest gap was reported by upper-middle-income countries, at US\$&nbsp;`r ftb(f4.1.10a_txt$report_year/1000)` billion in `r report_year`, up from US\$&nbsp;`r ftb(f4.1.10a_txt$report_year_minus/1000)` billion in `r report_year - 1`; this increase was mainly attributable to funding gaps reported by Indonesia and the Philippines (`r lnk("Fig. 4.1.10")`, `r lnk("Fig. 4.1.11")`). Among the `r total_lic` LICs, `r lics_with_gaps` (`r round(lics_with_gaps*100/total_lic,0)`%) reported funding gaps that amounted to US\$&nbsp;`r latest_year_budgetgap_lic` million in `r report_year` (`r lnk("Fig. 4.1.10")`). 
+
+
+### `r anch("Fig. 4.1.10")` <span class="fig" style="color:#F21905">Fig. 4.1.10</span> Gaps between the funding required for national strategic plans for TB and the expected level of funding as reported by national TB programmes,^a^ by income group and by WHO region, 2015&ndash;`r report_year`
+
+``` {r f4.1.10_data, fig.alt="Reported funding gaps for TB by income group and by WHO region" }
+
+
+f4.1.10a_plot <- f4.1.10a_data |> 
+  filter(year <= report_year) |>
+  ggplot(aes(x=year, y = gap_tot, col = grp)) +
+  geom_line(size=1.5, alpha=.85) +
+  scale_y_continuous(name = paste0("Millions (constant ",report_year-1," US$)")) +
+  scale_x_continuous("", breaks=seq(2013,report_year,2),  expand=c(0, .1)) +
+  scale_color_manual(values = c("#814550" ,"#8FD314", "#E63E13" ))  +
+  guides(color = guide_legend(ncol = 1)) +
+  theme_gtb() +
+  theme(legend.position = "bottom")  +
+  # Add a gray line over the x-axis so that all graphs have a line at the bottom
+  annotate("segment", x=-Inf, 
+           xend=Inf, 
+           y=-Inf, 
+           yend=-Inf, 
+           colour = "#BCBCBC")
+
+
+f4.1.10b_plot <- f4.1.10b_data |> 
+  filter(year <= report_year) |>
+  ggplot(aes(x=year, y = gap_tot, col = grp)) +
+  geom_line(size=1.5, alpha=.85) +
+  scale_y_continuous("") +
+  scale_x_continuous("", breaks=seq(2013,report_year,2),  expand=c(0, .1)) +
+  # https://apps.who.int/gho/data/design-language/design-system/colors/
+  scale_color_manual(values = c("#6363c0","#f26829","#40bf73","#008dc9","#bd53bd","#f4a81d" ))  +
+  guides(color = guide_legend(ncol = 2)) +
+  theme_gtb() +
+  theme(legend.position = "bottom" ) +
+  # Add a gray line over the x-axis so that all graphs have a line at the bottom
+  annotate("segment", x=-Inf, 
+           xend=Inf, 
+           y=-Inf, 
+           yend=-Inf, 
+           colour = "#BCBCBC") 
+
+output_ggplot(f4.1.10a_plot, f4.1.10a_data, show_static, pdf_csv_folder, save_csv, save_pdf) 
+output_ggplot(f4.1.10b_plot, f4.1.10b_data, show_static, pdf_csv_folder, save_csv, save_pdf)
+```
+<div class="row">
+<div class="col-md-6">
+<div id="fig_4_1_10a"></div>
+</div>
+<div class="col-md-6">
+<div id="fig_4_1_10b"></div>
+</div>
+</div>
+
+<div class="footnote">^a^ A total of `r countries_with_gaps` low- and middle-income countries reported insufficient funding for full implementation of their national strategic plans for TB in `r report_year`.</div>
+
+<hr />
+<br />
+
+Among the 30 high TB burden countries and 2 global TB watchlist countries, the largest gaps for 2026 were reported by `r knitr::combine_words(table_country_gaps$country_in_text_EN[1], oxford_comma=FALSE)` (US\$&nbsp;`r table_country_gaps$gap_tot[1]` million), `r knitr::combine_words(table_country_gaps$country_in_text_EN[2], oxford_comma=FALSE)` (US\$&nbsp;`r table_country_gaps$gap_tot[2]` million), `r knitr::combine_words(table_country_gaps$country_in_text_EN[3], oxford_comma=FALSE)` (US\$&nbsp;`r table_country_gaps$gap_tot[3]` million), `r knitr::combine_words(table_country_gaps$country_in_text_EN[4], oxford_comma=FALSE)` (US\$&nbsp;`r table_country_gaps$gap_tot[4]` million) and `r knitr::combine_words(table_country_gaps$country_in_text_EN[5], oxford_comma=FALSE)` (US\$&nbsp;`r table_country_gaps$gap_tot[5]` million) (`r lnk("Fig. 4.1.11")`). 
+
+
+### `r anch("Fig. 4.1.11")` <span class="fig" style="color:#F21905">Fig. 4.1.11</span> Sources of expected funding^a^ and funding gaps reported for the TB-specific budgets included in national strategic plans for TB in the 30 high TB burden countries and 2 global TB watchlist countries,^b^ `r report_year`^c^
+
+``` {r fig4_1_11a, fig.alt="Sources of funding and funding gaps for the TB-specific budgets included in national strategic plans for TB"}
+
+f4.1.11a_plot <- f4.1.11a_data |>
+  filter(str_detect(variable, "_pct")) |>
+  ggplot(aes(country,  value, fill = variable)) +
+  geom_col(width=.8, position = position_stack(reverse = TRUE)) +
+  coord_flip() +
+  theme_gtb() +
+  scale_x_discrete(limits= ctry_a,
+                   labels = function(x) str_wrap(x, width = 20))+
+  xlab("")+ylab("")+
+  theme_minimal() +
+  # Prev hues were "#377eb8", "#4daf4a", "#984ea3", "#e41a1c"
+  scale_fill_manual(values=c("#4ABAFC","#e41a1c", "#4daf4a", "#BBBBBB"), labels=c("Domestic funding", "Global Fund","Other", "Budget gap")) +
+  theme(legend.position = "none")+
+  expand_limits(x=c(0,6))+
+  expand_limits(y=c(0,100))+
+  theme(plot.margin=unit(c(0,0,0,0),units="npc"))+
+  ggtitle("Low-income\u1D48")
+
+output_ggplot(f4.1.11a_plot, f4.1.11a_data, show_static, pdf_csv_folder, save_csv, save_pdf) 
+
+
+```
+
+``` {r fig4_1_11b, fig.height = 8 }
+
+f4.1.11b_plot <-f4.1.11b_data |>
+  filter(str_detect(variable, "_pct")) |>
+  ggplot(aes(country,  value, fill = variable)) +
+  geom_col(width=.8,position = position_stack(reverse = TRUE)) +
+  coord_flip() +
+  theme_gtb() +
+  scale_x_discrete(limits=ctry_b,
+                   labels = function(x) str_wrap(x, width = 20))+
+  xlab("")+ylab("")+
+  theme_minimal()+
+  scale_fill_manual(values=c("#4ABAFC","#e41a1c", "#4daf4a", "#BBBBBB"), labels=c("Domestic funding", "Global Fund","Other", "Budget gap")) +
+  theme(legend.position = "none")+
+  expand_limits(x=c(0,10))+
+  expand_limits(y=c(0,100))+
+  ggtitle("Lower-middle-income")
+
+
+output_ggplot(f4.1.11b_plot, f4.1.11b_data, show_static, pdf_csv_folder, save_csv, save_pdf) 
+```
+
+
+``` {r fig4_1_11c}
+
+f4.1.11c_plot <-f4.1.11c_data |>
+  filter(str_detect(variable, "_pct")) |>
+  ggplot(aes(country,  value, fill = variable)) +
+  geom_col(width=.8,position = position_stack(reverse = TRUE)) +
+  coord_flip() +
+  theme_gtb() +
+  scale_x_discrete(limits=ctry_c,
+                   labels = function(x) str_wrap(x, width = 20))+
+  xlab("")+ylab("Percentage")+
+  theme_minimal()+
+  theme(legend.position = "bottom")+
+  scale_fill_manual(values=c("#4ABAFC","#e41a1c", "#4daf4a", "#BBBBBB"), labels=c("Domestic funding", "Global Fund","International donor funding (excluding Global Fund)", "Budget gap")) +
+  theme(legend.title = element_blank())+
+  expand_limits(x=c(0,8))+
+  expand_limits(y=c(0,100))+
+  ggtitle("Upper-middle-income\u1D48")
+
+output_ggplot(f4.1.11c_plot, f4.1.11c_data, show_static, pdf_csv_folder, save_csv, save_pdf) 
+```
+<div id="fig_4_1_11a"></div>
+<br />
+<div id="fig_4_1_11b"></div>
+<br />
+<div id="fig_4_1_11c"></div>
+
+<div class="footnote">^a^ Domestic funding in this graphic is based on data reported by NTPs, which typically do not include the financial costs associated with inpatient and outpatient care required during TB treatment.<br>
+^b^ The 2 global TB watchlist countries are Gabon and Liberia; for further details, see <span class="fig" style="color:#F21905">Annex 3</span> of the core report document.<br>
+^c^ `r str_to_title(int2word(f4.1.11_txt |> nrow()))` countries - `r knitr::combine_words(f4.1.11_txt$country_in_text_EN, oxford_comma=FALSE)` - had not reported budget data for `r report_year` to WHO at the time the data snapshot for this webpage was taken (`r format(as.Date(snapshot_date), format="%d %B %Y")`).<br>
+^d^ In the most recent classification of countries by income group published by the World Bank (`r ref_lnk("11")`), the Russian Federation was categorized as a high-income country. It was included as an upper-middle-income country because it was an upper-middle-income country for most of the period `r start_year`&ndash;`r report_year - 1`, is in WHO’s list of high burden countries for drug-resistant TB and was one of the three countries in WHO’s list of global TB watchlist countries until 2025 (having been in WHO’s list of high TB burden countries until 2020). For more details about WHO’s lists of high burden countries for TB, drug-resistant TB and TB/HIV, see <span class="red">Annex 3</span> of the core report document.</div>
+
+
+<hr />
+<br />
+
+The Stop TB Partnership’s Global Plan to End TB (the Global Plan) for 2023&ndash;2030 estimated global funding needs of US\$&nbsp;15&ndash;32 billion per year in LMICs. For `r report_year`, estimated needs were US\$&nbsp;`r ftb(gp_income_txt$LMIC)` billion, comprising US\$&nbsp;`r ftb(gp_income_txt$LIC)` billion for LICs, US\$&nbsp;`r ftb(gp_income_txt$LMC)` billion for lower-middle-income countries and US\$&nbsp;`r ftb(gp_income_txt$UMC)` billion for upper-middle-income countries (`r ref_lnk("6")`).
+
+Overall, the total required budget reported by LMICs to WHO for 2026 was only `r ftb(budget_txt$value/gp_income_txt$LMIC * 100)`% of the estimated needs for LMICs in `r report_year` in the Global Plan (`r lnk("Fig. 4.1.12")`). This large difference probably reflects the lower ambition, scale and scope of national strategic plans compared with the Global Plan. National plans  are also likely to be influenced by expected resource constraints, including the domestic and international funding that countries anticipate will be available.
+
+For example, the funding gap reported by LICs for 2026 was US\$&nbsp;`r ftb(f4.1.12_data_inc_grp$gap_tot[f4.1.12_data_inc_grp$g_income == "LIC"])` billion. This was equivalent to only `r ftb(f4.1.12_data_inc_grp$pcnt_diff_ghs_plus[f4.1.12_data_inc_grp$g_income == "LIC"])`% of the gap between estimated needs in the Global Plan for LICs and their expected funding. The Global Plan estimated needs of US\$&nbsp;`r ftb(f4.1.12_data_inc_grp$gp_tot[f4.1.12_data_inc_grp$g_income == "LIC"])` billion for LICs in 2026, compared with expected funding of US\$&nbsp;`r ftb(f4.1.12_data_inc_grp$cf_tot_ghs_plus[f4.1.12_data_inc_grp$g_income == "LIC"])` billion, implying a gap of US\$&nbsp;`r ftb(f4.1.12_data_inc_grp$gap_tot_ghs_plus[f4.1.12_data_inc_grp$g_income == "LIC"])` billion (`r ref_lnk("6")`).
+
+This comparison suggests that NTP-reported funding gaps may reflect resource-constrained national planning, rather than the full additional investment needed to reach the levels set out in the Global Plan.
+
+
+### `r anch("Fig. 4.1.12")` <span class="fig" style="color:#F21905">Fig. 4.1.12</span> Gaps between the funding required for national strategic plans for TB as reported by NTPs^a^ and the estimated funding needs in the Global Plan, by income group, `r report_year`
+
+``` {r f4.1.12_data, fig.alt="Reported funding gaps for TB by income group" }
+
+f4.1.12_plot <- f4.1.12b_data |>
+  # mutate(iso3 = factor(iso3, levels = sel_order$iso3, ordered = F)) |> 
+  ggplot(aes(x=g_income, y=value, colour=grp, group = 1)) +  
+  geom_path(mapping=NULL, data=f4.1.12b_data, stat="identity", lineend="butt",col="grey30") +
+  geom_point(aes(col=grp),position="identity",size=4)+
+  facet_wrap(~ g_income,strip.position="left",ncol=1,scales = "free_y", drop=TRUE,
+             labeller = label_wrap_gen())+
+  coord_flip()+
+  scale_y_continuous(limits= c(0,20), breaks = seq(0,20,5)) + 
+  theme_gtb() + theme(strip.text = element_text(hjust = 0)) + 
+  scale_color_manual(values = c("#B10026","#FC4E2A","#FEB24C")) + 
+  theme(legend.position = "bottom") +
+  xlab(NULL) + ylab("Billions (constant 2024 US$)")+ 
+  
+  theme(strip.text.y.left = element_text(angle = 0)) + 
+  theme(strip.placement = "outside",strip.background = element_blank(),
+        panel.border = element_blank(), 
+        panel.spacing.x = unit(0,"line"))+
+  theme(axis.text.y=element_blank(),
+        axis.ticks.y=element_blank(),
+        legend.title = element_blank())
+
+output_ggplot(f4.1.12_plot, f4.1.12b_data, show_static, pdf_csv_folder, save_csv, save_pdf) 
+```
+<div id="fig_4_1_12b"></div>
+
+<div class="footnote">^a^ The Global Plan estimates include the financial costs associated with inpatient and outpatient care required during TB treatment, which are not typically included in data reported by NTPs. For comparability purposes, the estimated financial costs associated with inpatient and outpatient treatment were added to the required budgets and expected funding reported by NTPs, using the latest available information (`r report_year - 1`). See `r lnk("Box 4.1")` for the methods used to develop these estimates.</div>
+
+
+<br />
+
+Increases in both domestic and international funding for TB are urgently required. Variation in the share of funding from domestic sources among countries within the same income group suggests that there is scope to increase domestic funding in some high TB burden and global TB watchlist countries, while international donor funding remains critical for LICs and many high TB burden countries outside BRICS. Mobilizing additional resources is particularly urgent given substantial changes to the international donor funding landscape in 2025 and a more constrained funding environment for 2026&ndash;2028 (`r ref_lnk("8&ndash;10, 12&ndash;14, 16, 17")`). 
+
+<br />
+<hr />
+
+## Estimated cost per person treated for TB
+
+The median provider cost per person treated for drug-susceptible TB in `r report_year - 1` was US\$&nbsp;`r c_pp_dots` (`r lnk("Fig. 4.1.13")`). 
+
+
+### `r anch("Fig. 4.1.13")` <span class="fig" style="color:#F21905">Fig. 4.1.13</span> Estimated cost per person treated for drug-susceptible TB^a^ compared with GDP per capita in `r dstb_cpp_no` countries,^b^ `r report_year - 1`
+<span class = subhead><span style="color:#F21905"><strong>Red</strong></span> dots indicate the 30 high TB burden and 2 global TB watchlist countries, <span style="color:#3760e6"><strong>blue</strong></span> dots indicate other countries; the size of each dot is proportional to the number of national notifications of people diagnosed with drug-susceptible TB in `r report_year - 1`. Put cursor over a dot to see the country name and data.</span>
+
+``` {r fig4.1.13, echo = FALSE, message=FALSE, warning = FALSE, fig.alt='Estimated cost per patient treated for drug-susceptible TB', fig.height = 8}
+
+f4.1.13_plot <- f4.1.13_data |>
+  filter(iso3 != "CUB") |>
+  ggplot(aes(x=imf_gdp_pc_con_usd, y=c_pp_dots, size=c_notified, 
+             fill = factor(g_hb_tb,labels=c("Rest of world","30 High TB burden countries")))) +
+  geom_point(shape=21, color="white") +
+  scale_x_log10(limits=c(100,70000)) + scale_y_log10(limits=c(1,20000),labels = scales::label_number()) +
+  scale_size_continuous("", range = c(2, 30), breaks = c(50000,250000,1000000), guide = "none") +
+  # scale_fill_manual(values = c("#FC1C1E","#91a93e","#00a76d","#FF8C1F","#218ed4","#b72270")) +
+  scale_fill_manual("", values = c("#4a8efc","#FC1C1E")) +
+  xlab(paste0("GDP per capita (",report_year-1," US$, log scale)")) +ylab(paste0("Cost per patient treated (",report_year-1," US$, log scale)")) +
+  theme_gtb()  +
+  guides(fill = guide_legend(reverse=TRUE))
+
+output_ggplot(f4.1.13_plot, f4.1.13_data, show_static, pdf_csv_folder, save_csv, save_pdf)
+```
+<div id="fig_4_1_13"></div>
+<div class="footnote">^a^ The following costs are included: laboratory equipment and supplies; anti-TB drugs; programme management (including staff and activities); operational research and surveys; patient support; miscellaneous items; inpatient and outpatient care.<br>
+^b^ Limited to countries with at least 100 people on first-line treatment in `r report_year - 1` and that reported funding and utilisation data to WHO.</div>
+
+<hr />
+<br />
+
+The median provider cost per person treated for drug-resistant TB in 2025 was US\$&nbsp;`r c_pp_mdr` (`r lnk("Fig. 4.1.14")`). This includes treatment costs and TB programme-related costs.  Between 2023 and 2025, the median cost decreased by around US\$&nbsp;1000 per person, probably reflecting expanded use of 6-month treatment regimens, first recommended by WHO in 2022 (<span class="red">Fig. 2.4.10</span> of <span class="red">Section 2.4</span>). Decreases of around US\$&nbsp;500&ndash;1000 were observed in several countries: examples include Indonesia, Myanmar, Peru and Ukraine.
+
+
+### `r anch("Fig. 4.1.14")` <span class="fig" style="color:#F21905">Fig. 4.1.14</span> Estimated cost per person treated for drug-resistant TB^a^ compared with GDP per capita in `r mdr_cpp_no` countries,^b^ `r report_year - 1`
+<span class = "subhead"><span style="color:#F21905"><strong>Red</strong></span> dots indicate the 30 high RR-TB burden countries, <span style="color:#3760e6"><strong>blue</strong></span> dots indicate other countries; the size of each dot is proportional to the number of national notifications of people diagnosed with drug-resistant TB in `r report_year - 1`. Put cursor over a dot to see the country name and data.</span>
+
+``` {r fig4.1.14,echo = FALSE, message=FALSE, warning = FALSE, fig.alt ='Estimated cost per patient treated for RR-TB', fig.height = 8}
+
+f4.1.14_plot <- f4.1.14_data |>
+  ggplot(aes(x=imf_gdp_pc_con_usd, y=c_pp_mdr, size=mdr_tx, 
+             fill = factor(g_hb_mdr,labels=c("Rest of world","30 high RR-TB burden countries")))) +
+  geom_point(shape=21, color="white") +
+  scale_x_log10(limits=c(100,30000)) + scale_y_log10(limits=c(100,100000),labels = scales::label_number()) +
+  scale_size_continuous("", range = c(2, 30), breaks = c(50000,250000,1000000), guide = "none") +
+  scale_fill_manual("", values = c("#4a8efc","#FC1C1E")) +
+  xlab(paste0("GDP per capita (",report_year-1," US$, log scale)")) +ylab(paste0("Cost per patient treated (",report_year-1," US$, log scale)")) +
+  theme_gtb()  +
+  guides(fill = guide_legend(reverse=TRUE))
+
+output_ggplot(f4.1.14_plot, f4.1.14_data, show_static, pdf_csv_folder, save_csv, save_pdf)
+```
+<div id="fig_4_1_14"></div>
+<div class="footnote">RR-TB: rifampicin resistant-TB.<br>
+^a^ The following costs are included: anti-TB drugs; programme management (staff and activity) costs specifically required for the provision of care to people with drug-resistant TB; inpatient and outpatient care.<br>
+^b^ Limited to countries with at least 20 people on second-line treatment in `r report_year - 1` and that reported funding and utilisation data to WHO.</div>
+
+
+<hr />
+<br />
+Estimates of the costs incurred by people with TB and their households during diagnosis and treatment are available from national surveys (<span class="red">Section 5.2</span>).
+
+Further details on funding for TB prevention, diagnostic and treatment services are available in <a href="https://worldhealthorg.shinyapps.io/tb_profiles/">country profiles</a> and the [Global tuberculosis report app](https://www.who.int/teams/global-tuberculosis-programme/data#app). Methods for data collection and analysis are summarized below (`r lnk("Box 4.1")`).
+
+Data shown on this webpage are as of `r format(as.Date(snapshot_date), format="%d %B %Y")` (see <span class="red">Annex 2</span> of the core report document for more details).
+
+<br />
+
+<div class="textbox">
+## `r anch("Box 4.1")` Box 4.1 
+
+## Methods used to compile, review, validate and analyse financial data reported to WHO
+
+WHO has monitored government and international donor financing for TB prevention, diagnostic and treatment services since 2002. Data are stored in the WHO global TB database. The standard methods used to compile, review, validate and analyse these data are described in detail in a technical appendix; this box provides a summary.
+
+The methods used to systematically review and validate data have remained consistent since 2002. They include routine checks for plausibility and consistency, and discussions with country respondents to resolve queries. In reviewing and validating data, particular attention is given to high TB burden countries or global TB watchlist countries.
+
+Missing data are handled as follows:
+
+* The analysis of available funding for TB uses reported information on received funding. When received funding is not available for a given year, expenditure data are used; if both received funding and expenditure are unavailable, data on committed funds are used. If none of these data are available, received funding, expenditure or committed funds from adjacent years are used. For analysis of funding in `r report_year - 1`, received funding was replaced by one of these methods for `r methods_box |> filter(rcvd_imputation != "Reported data" & !is.na(rcvd_tot) & !(do_not_fill == 1)) |> summarise(n()) |> unlist()` countries, which collectively accounted for `r ftb(100*(methods_box |> filter(rcvd_imputation != "Reported data" & !is.na(rcvd_tot) & !(do_not_fill == 1)) |> summarise(sum(c_notified, na.rm = T))) / sum(notif_total$c_notified))`% of the global number of notified cases of TB in `r report_year - 1`. This included `r methods_box |> filter(rcvd_imputation != "Reported data" & !is.na(rcvd_tot) & !(do_not_fill == 1) & g_hb_tb==1 & !iso3 %in% c("LBR", "GAB")) |> summarise(n()) |> unlist()` high burden and `r methods_box |> filter(rcvd_imputation != "Reported data" & !is.na(rcvd_tot) & !(do_not_fill == 1) & g_hb_tb==1 & iso3 %in% c("LBR", "GAB")) |> summarise(n()) |> unlist()` global watchlist countries, `r knitr::combine_words(methods_box_hbc$country_in_text_EN, oxford_comma=FALSE)`; these countries accounted for `r ftb(100*(methods_box_hbc |>  summarise(sum(c_notified, na.rm = T))) / sum(notif_total$c_notified))`% of the global number of TB case notifications. `r int2word(methods_box |> filter(rcvd_imputation != "Reported data" & (is.na(rcvd_tot)) | (do_not_fill == 1)) |> summarise(n()) |> unlist()) |> str_to_title()` countries, collectively accounting for `r ftb(100*(methods_box |> filter(rcvd_imputation != "Reported data" & (is.na(rcvd_tot)) | (do_not_fill == 1)) |> summarise(sum(c_notified, na.rm = T))) / sum(notif_total$c_notified))`% of the global number of notified cases of TB in `r report_year - 1`, did not have sufficient data for any of the above methods to be applied; for these countries, only the estimated financial costs associated with inpatient and outpatient treatment were included, using the methods described below.
+
+* When the breakdown of received funding by source or by category is missing for a given year, country-specific shares from the previous year are applied instead.
+
+* Since TB funding reported by NTPs usually excludes the financial costs associated with the inpatient and outpatient care required during TB treatment, country-specific estimates of these costs are added. Exceptions among high TB or RR-TB burden countries include Belarus, China, Kazakhstan and the Russian Federation. Estimates are calculated  by multiplying the reported number of TB patients notified by the  average number of bed days and outpatient visits per patient, as reported by NTPs, and their respective unit costs. This is done separately for TB patients with drug-susceptible TB and drug-resistant TB. Unit costs are estimated using the WHO CHOosing Interventions that are Cost-Effective (WHO-CHOICE) methods (`r ref_lnk("18")`).
+
+Trend data are shown in constant (as opposed to current) `r report_year - 1` US dollars. In other words, funding amounts are shown in real terms, after adjustment for inflation. Figures and tables that show data for `r report_year - 1` only are labelled as current `r report_year - 1` US dollars.<br>
+</div>
+
+<div class="footnote">Note: Data sources for <span class="fig" style="color:#F21905">Fig 4.1.2&ndash;4.1.14</span>: Data reported by NTPs and estimates produced by the WHO Department of HIV, TB, Hepatitis & STIs. The data sources, boundaries, accounting rules, and estimation methods used in this report are different from those of the System of Health Accounts 2011 (SHA 2011) (`r ref_lnk("19")`). The TB funding data reported here are thus not comparable with the disease expenditure data, including for TB, that are reported in <a href="https://apps.who.int/nha/database"><u>WHO's Global Health Expenditure Database</u></a>.</div>
+
+
+
+`r anch("refs")`
+
+<hr style="border:1px solid gray20">
+
+**References**
+
+1. Floyd K, Fitzpatrick C, Pantoja A, Raviglione M. Domestic and donor financing for tuberculosis care and control in low-income and middle-income countries: an analysis of trends, 2002&ndash;11, and requirements to meet 2015 targets. Lancet Glob Health. 2013;1(2):e105&ndash;15 (https://doi.org/10.1016/s2214-109x(13)70032-9).
+
+2. Floyd K, Pantoja A, Dye C. Financing tuberculosis control: the role of a global financial monitoring system. Bull World Health Organ. 2007;85(5):334&ndash;40 (https://doi.org/10.2471/blt.06.034942).
+
+3. Su Y, Garcia Baena I, Harle AC, Crosby SW, Micah AE, Siroka A et al. Tracking total spending on tuberculosis by source and function in 135 low-income and middle-income countries, 2000-17: a financial modelling study. Lancet Infect Dis. 2020;20:929-42 (https://doi.org/10.1016/S1473-3099(20)30124-9).
+
+4. Treatment Action Group, Stop TB Partnership. Tuberculosis research funding trends 2005&ndash;2023. New York: Treatment Action Group; 2024 (https://www.treatmentactiongroup.org/wp-content/uploads/2024/12/TB_funding_2024_final.pdf).
+
+5. Resolution 78/5: Political declaration of the high-level meeting of the General Assembly on the fight against tuberculosis. New York: United Nations; 2023 (https://undocs.org/A/RES/78/5).
+
+6. The Global Plan to End TB, 2023&ndash;2030. Geneva: Stop TB Partnership; 2022 (https://www.stoptb.org/global-plan-to-end-tb/global-plan-to-end-tb-2023-2030).
+
+7.	A historic decline in foreign aid: Preliminary 2025 ODA data [website]. Paris: Organisation for Economic Co-operation and Development; 2026 (https://www.oecd.org/en/data/insights/data-explainers/2026/04/a-historic-decline-in-foreign-aid-preliminary-2025-oda-data.html).
+
+8.	Global Fund Board welcomes final eighth replenishment outcome of US$12.64 billion, backs strategic shifts to advance countries’ path to self-reliance [website]. Global Fund to Fight AIDS, Tuberculosis and Malaria; 2026 (https://www.theglobalfund.org/en/news/2026/2026-02-18-global-fund-board-welcomes-final-eighthreplenishment-outcome/).
+
+9.	OECD data shows brutal drop in development assistance [website]. African Business; 2026  (https://african.business/2026/04/politics/oecd-data-shows-brutal-drop-in-development-assistance).
+
+10.	Global Fund board hails record-breaking seventh replenishment final outcome of US$15.7 billion [website]. Global Fund to Fight AIDS, Tuberculosis and Malaria; 2022  (https://www.theglobalfund.org/en/news/2022/2022-11-18-global-fund-board-hails-record-breaking-seventhreplenishment-final-outcome-of-usd157-billion/).
+
+11.	World Bank Country and Lending Groups. Washington D.C.: World Bank; 2026 (https://datahelpdesk.worldbank.org/knowledgebase/articles/906519-world-bank-country-and-lending-groups).
+
+12.	UNAIDS Special report for the 26th International AIDS Conference: united to end AIDS. Geneva: Joint United Nations Programme on HIV/AIDS; 2026 (https://www.unaids.org/en/resources/documents/2026/20260727_special_report_AIDS2026).
+
+13.	UNAIDS HIV Financial Dashboard [website]. Geneva: Joint United Nations Programme on HIV/AIDS; 2026 (https://hivfinancial.unaids.org/hivfinancialdashboards.html).
+
+14.	Global Tuberculosis Report 2025. Geneva: World Health Organization; 2025 (https://iris.who.int/handle/10665/383364). License: CC BY-NC-SA 3.0 IGO.
+
+15.	The Global Fund; Geneva: (https://www.theglobalfund.org/en/).
+
+16.	State Department outlines plans to move from global health aid to self-reliance [website]. The Hill; 2025 (https://thehill.com/homenews/administration/5511388-us-health-aid-reform/).
+
+17.	America First global health strategy [website]. US Department of State; 2025 (https://www.state.gov/america-first-global-health-strategy).
+
+18.	Stenberg K, Lauer JA, Gkountouras G, Fitzpatrick C, Stanciole A. Econometric estimation of WHO-CHOICE country-specific costs for inpatient and outpatient health service delivery. Cost Eff Resour Alloc. 2018;16:11 (https://doi.org/10.1186/s12962-018-0095-x).
+
+19.	Organisation for Economic Co-operation and Development, Eurostat and World Health Organization (2017). A System of Health Accounts 2011: Revised edition. Paris: OECD Publishing; 2017 (http://dx.doi.org/10.1787/9789264270985-en).
+
+
+
+<hr style="border:1px solid gray20">
+
+**General disclaimers**
+<br>
+The designations employed and the presentation of the material in this publication do not imply the expression of any opinion whatsoever on the part of WHO concerning the legal status of any country, territory, city or area or of its authorities, or concerning the delimitation of its frontiers or boundaries. Dotted and dashed lines on maps represent approximate border lines for which there may not yet be full agreement.
+
+
+```{r js_functions}
+# Insert javascript file containing common Kendo number formatting functions ----
+cat(writeLines(readLines(here("report/resources/gtbr_js.htm")))) 
+```
+
+<script type="text/javascript">
+/* JSON data objects for the figures */
+
+var fig_4_1_2b_data = `r f4.1.2_data |> filter(year <= report_year - 1) |> pivot_wider(names_from = name, values_from = value) |> mutate(target=22) |> toJSON("rows")`   ;  
+
+var fig_4_1_3_data = `r f4.1.3_data |> mutate(grp=ifelse(as.character(grp)=="High TB burden and global TB watchlist countries outside BRICS\u1d9c (n=28)","High TB burden and global TB watchlist countries\noutside BRICS\u1d9c (n=28)",as.character(grp))) |> toJSON("rows")`   ;  
+
+var fig_4_1_4_data = `r f4.1.4_data |>  filter(year <= report_year - 1)  |> pivot_wider(names_from = name, values_from = value) |> rename(int=3,ext=4,int_ghs=5) |>  toJSON("rows")`   ;  
+
+var fig_4_1_5_data = `r f4.1.5_data |>  filter(year <= report_year - 1)  |> pivot_wider(names_from = source, values_from = value) |>  toJSON("rows")`   ;  
+
+var fig_4_1_6_data = `r f4.1.6_data |> pivot_wider(names_from = variable,values_from = value) |> arrange(desc(usaid_pct), int_pct) |> toJSON("rows")`   ; 
+
+var fig_4_1_7_data = `r f4.1.7_data |>  filter(year <= report_year - 1) |> toJSON("rows")`   ;  
+
+var fig_4_1_8_data = `r f4.1.8_data |>   filter(year <= report_year - 1) |> mutate(g_brics=ifelse(as.character(g_brics)=="High TB burden and global TB watchlist countries outside BRICS\u1D47 (n=28)","High TB burden and\nglobal TB watchlist countries\noutside BRICS\u1D47 (n=28)",as.character(g_brics))) |> toJSON("rows")`   ;  
+
+var fig_4_1_10a_data = `r f4.1.10_data |> filter( year <= report_year) |>   group_by(year, grp = g_income) |>   mutate_at(vars(gap_tot), function(x) ifelse(x < 0, 0 , x)) |>   summarise_at(vars(gap_tot), sum, na.rm = T) |> pivot_wider(names_from = grp, values_from = gap_tot) |>  toJSON("rows")`   ;  
+
+var fig_4_1_10b_data = `r f4.1.10_data |> filter( year <= report_year) |> group_by(year, grp = g_whoregion) |> mutate_at(vars(gap_tot), function(x) ifelse(x < 0, 0 , x)) |> summarise_at(vars(gap_tot), sum, na.rm = T) |> pivot_wider(names_from = grp, values_from = gap_tot) |> select(year,AFR,AMR,SEA,EUR,EMR,WPR) |>  toJSON("rows")`   ;  
+
+var fig_4_1_11a_data = `r f4.1.11a_data |> pivot_wider(names_from = variable,values_from = value) |> arrange(desc(int_pct)) |> mutate(country=str_wrap(country, width = 23,indent = 0)) |> toJSON("rows")`   ; 
+
+var fig_4_1_11b_data = `r f4.1.11b_data |> pivot_wider(names_from = variable,values_from = value) |> arrange(desc(int_pct)) |> mutate(country=str_wrap(country, width = 23,indent = 0)) |> toJSON("rows")`   ; 
+
+var fig_4_1_11c_data = `r f4.1.11c_data |> pivot_wider(names_from = variable,values_from = value) |> arrange(desc(int_pct)) |> toJSON("rows")`   ; 
+
+var fig_4_1_12b_data = `r f4.1.12b_data |> pivot_wider(names_from = grp, values_from = value) |> rename(bud=2,cf=3,gp=4) |> toJSON("rows")`   ;
+
+var fig_4_1_13_data =  `r f4.1.13_data |> filter(iso3 != "CUB") |> mutate(x = imf_gdp_pc_con_usd , y = c_pp_dots, size = c_notified, color = ifelse(g_hb_tb==1, "#E41B17", "#3760e6"), cost = c_pp_dots) |> select(country, x, y, size, color) |> toJSON("rows")`   ;
+
+var fig_4_1_14_data =  `r f4.1.14_data |> mutate(x = imf_gdp_pc_con_usd, y = c_pp_mdr, size = mdr_tx, color = ifelse(g_hb_mdr==1, "#E41B17", "#3760e6")) |> select(country, x, y, size, color) |> toJSON("rows")`   ;
+
+
+
+</script>
+
+```{js, echo=FALSE}
+
+/* Functions to create the figures */
+
+function createfig_4_1_2(fig_ID) {
+		$(fig_ID).kendoChart({
+			dataSource: fig_4_1_2b_data,
+			chartArea: {
+				height: 500
+			},	
+			legend: {
+				position: "top"
+			},
+			seriesDefaults: {
+				type: "line",
+			},
+			series: [{
+        name: "Total",
+				field: "tot",
+				color: "#00AAAD",
+        markers: {
+          size: 5
+        },
+        tooltip: {
+				visible: true,
+				template: "Total (#= category #): #= value.toPrecision(2) # billion (constant 2025 US$)"
+			}
+			},{
+        name: "Domestic funding",
+				field: "int",
+				color: "#4ABAFC",
+        markers: {
+          size: 5
+        },
+        tooltip: {
+				visible: true,
+				template: "Domestic funding (#= category #): #= value.toPrecision(2) # billion (constant 2025 US$)"
+			}
+			},{
+        name: "International funding",
+				field: "ext",
+				color: "#E63E13",
+        markers: {
+          size: 5
+        },
+        tooltip: {
+				visible: true,
+				template: "International funding (#= category #): #= value.toPrecision(2) # billion (constant 2025 US$)"
+			}
+			},
+			/*{
+        type: "line",
+        dashType: "dash",
+        field: "target",
+        color: "grey",
+        markers: {
+             size: 0,
+             opacity: 0
+           },
+			tooltip: {
+				visible: false,
+			}
+      }*/
+      ],     
+			valueAxis: {
+				labels: {
+				template: "#= kendo.format('{0}',value) #",
+				},
+				title: {
+					text: "Billions (constant 2025 US$)"
+				},
+				line: {
+					visible: false
+				},
+/*				// Use the plotBands object to annotate the target dashed line instead of a Kendo drawing object
+    		plotBands: [{
+    			from: 21.9,
+    			to: 22.1,
+    			color: "#444444",
+    			// make the bands invisible, but keep the label visible
+    			opacity: 0,
+    			label: {
+    				text: "Target: US$ 22 billion annually by 2027",
+    				font: "12px Arial,Helvetica,sans-serif",
+    				color: "#444444",
+    				position: "top",
+    				align: "center",
+    				padding: -20
+    			}
+    		}]
+    		*/
+			},
+			categoryAxis: {
+				field: "year",
+				labels: {
+					rotation: 0,
+					step: 2
+				},
+				majorGridLines: {
+					visible: false
+				}			}
+		});
+}
+
+function createfig_4_1_3(fig_ID,data,filter) {
+  	// Filter the dataset on the country variable
+		dataJSON = data.filter( element => element.grp == filter);
+  
+		$(fig_ID).kendoChart({		
+      dataSource: dataJSON,			
+			chartArea: {
+				height: 400
+			},	     
+      title: {
+				text: filter,
+				color: "black",
+				font: "bold 14px  Arial,Helvetica,sans-serif",
+        align: "center"
+			},	  
+			legend: {
+				position: "top"
+			},
+			seriesDefaults: {
+				type: "line",
+			},
+			series: [{
+        name: "Domestic funding",
+				field: "int",
+				color: "#4ABAFC",
+        markers: {
+          size: 5
+        },
+        tooltip: {
+				visible: true,
+				template: "Domestic funding (#= category #): #= value.toPrecision(2) # billion"
+			}
+			},{
+        name: "International funding",
+				field: "ext",
+				color: "#E63E13",
+        markers: {
+          size: 5
+        },
+        tooltip: {
+				visible: true,
+				template: "International funding (#= category #): #= value.toPrecision(2) # billion"
+			}
+			},],
+			valueAxis: {
+				labels: {
+				template: "#= axis_spacer(value) #",
+				},
+				title: {
+					text: "Billions (constant 2025 US$)"
+				},
+				line: {
+					visible: false
+				},
+			},
+			categoryAxis: {
+				field: "year",
+				labels: {
+					rotation: 0,
+					step: 2
+				},
+				majorGridLines: {
+					visible: false
+				}			}
+		});
+}
+
+
+function createfig_4_1_4(fig_ID,data,filter) {
+  	// Filter the dataset on the country variable
+		dataJSON = data.filter( element => element.country == filter);
+  
+		$(fig_ID).kendoChart({		
+      dataSource: dataJSON,			
+			chartArea: {
+				height: 250
+			},	     
+      title: {
+				text: filter,
+				color: "black",
+				font: "bold 14px  Arial,Helvetica,sans-serif",
+        align: "center"
+			},	  
+			legend: {
+				position: "bottom"
+			},
+			seriesDefaults: {
+				type: "line",
+			},
+			series: [{
+        name: "Domestic funding (reported by NTP)",
+				field: "int",
+				color: "#4ABAFC",
+        markers: {
+          size: 5
+        },
+        tooltip: {
+				visible: true,
+				template: "Domestic funding (reported by NTP) (#= category #): #= num_spacer(value) # million"
+			}
+			},{
+        name: "International funding",
+				field: "ext",
+				color: "#E63E13",
+        markers: {
+          size: 5
+        },
+        tooltip: {
+				visible: true,
+				template: "International funding (#= category #): #= num_spacer(value) # million"
+			}
+			},{
+        name: "Domestic funding\n(NTP plus WHO estimates of\nfunding for IP and OP care)",
+				field: "int_ghs",
+				color: "#104E8B",
+        markers: {
+          size: 5
+        },
+        tooltip: {
+				visible: true,
+				template: "Domestic funding\n(NTP plus WHO estimates of funding for IP and OP care) (#= category #): #= num_spacer(value) # million"
+			}
+			},],
+			valueAxis: {
+				labels: {
+				template: "#= kendo.format('{0}',value) #",
+				},
+				title: {
+					text: "Millions\n(constant 2025 US$)"
+				},
+				line: {
+					visible: false
+				},
+			},
+			categoryAxis: {
+				field: "year",
+				labels: {
+					rotation: 0,
+					step: 2
+				},
+				majorGridLines: {
+					visible: false
+				}			}
+		});
+}
+
+
+function createfig_4_1_5(fig_ID,data,filter) {
+  	// Filter the dataset on the country variable
+		dataJSON = data.filter( element => element.country == filter);
+  
+		$(fig_ID).kendoChart({		
+      dataSource: dataJSON,			
+			chartArea: {
+				height: 250
+			},	     
+      title: {
+				text: filter,
+				color: "black",
+				font: "bold 14px  Arial,Helvetica,sans-serif",
+        align: "center"
+			},	  
+			legend: {
+				position: "bottom"
+			},
+			seriesDefaults: {
+				type: "column",
+				stack: true
+			},
+			series: [			
+			{
+        name: "USG bilateral funding",
+				field: "rcvd_tot_usaid",
+				color: "#00205C",
+        markers: {
+          size: 5
+        },
+        tooltip: {
+				visible: true,
+				template: "USG bilateral funding (#= category #): #= num_spacer(value) # million"
+			}
+			},{
+        name: "Global Fund",
+				field: "rcvd_ext_gf",
+				color: "#A6228C",
+        markers: {
+          size: 5
+        },
+        tooltip: {
+				visible: true,
+				template: "Global Fund (#= category #): #= num_spacer(value) # million"
+			}
+			},{
+        name: "Other international funding",
+				field: "rcvd_ext_oth",
+				color: "#BBBBBB",
+        markers: {
+          size: 5
+        },
+        tooltip: {
+				visible: true,
+				template: "Other international funding (#= category #): #= num_spacer(value) # million"
+			}
+			},{
+        name: "Domestic funding (reported by NTP)\u1d47",
+				field: "rcvd_int",
+				color: "#4ABAFC",
+        markers: {
+          size: 5
+        },
+        tooltip: {
+				visible: true,
+				template: "Domestic funding (reported by NTP)\u1d47 (#= category #): #= num_spacer(value) # million"
+			}
+			},],
+			valueAxis: {
+				labels: {
+				template: "#= kendo.format('{0}',value) #",
+				},
+				title: {
+					text: "Millions\n(constant 2025 US$)"
+				},
+				line: {
+					visible: false
+				},
+				min: 0
+			},
+			categoryAxis: {
+				field: "year",
+				labels: {
+					rotation: 0,
+					step: 1
+				},
+				majorGridLines: {
+					visible: false
+				}			}
+		});
+}
+
+function createfig_4_1_6(fig_ID,data,title,height) {
+		$(fig_ID).kendoChart({
+			dataSource: data,
+			chartArea: {
+				height: height
+			},	
+      title: {
+				text: title,
+				color: "black",
+				font: "bold 14px  Arial,Helvetica,sans-serif",
+        align: "center"
+			},	
+			legend: {
+				position: "top"
+			},
+			seriesDefaults: {
+				type: "bar",
+        stack: true,
+        gap: 0.2
+			},
+			series: [{
+        name: "USG bilateral funding",
+				field: "usaid_pct",
+				color: "#00205C",
+        tooltip: {
+				visible: true,
+				template: "USG bilateral funding (#= category #): #= tb_format_pct(value) #%, US$ #= tb_format_pct(dataItem.rcvd_tot_usaid)# million"
+			}
+			},{
+        name: "Global Fund",
+				field: "gf_pct",
+				color: "#A6228C",
+        tooltip: {
+				visible: true,
+				template: "Global Fund (#= category #): #= tb_format_pct(value) #%, US$ #= tb_format_pct(dataItem.rcvd_ext_gf)# million"
+			}
+			},{
+        name: "Other international funding",
+				field: "oth_pct",
+				color: "#BBBBBB",
+        tooltip: {
+				visible: true,
+				template: "Other international funding (#= category #): #= tb_format_pct(value) #%, US$ #= tb_format_pct(dataItem.rcvd_ext_oth)# million"
+			}
+			},{
+        name: "Domestic funding",
+				field: "int_pct",
+				color: "#4ABAFC",
+        tooltip: {
+				visible: true,
+				template: "Domestic funding (#= category #): #= tb_format_pct(value) #%, US$ #= tb_format_pct(dataItem.rcvd_int)# million"
+			}
+			},],
+			valueAxis: {
+
+				title: {
+					text: "Percentage of funding available (%)"
+				},
+				line: {
+					visible: false
+				},
+				min: 0,
+				max: 100,
+			},
+			categoryAxis: {
+				field: "country",
+				labels: {
+					rotation: 0,
+				},
+				majorGridLines: {
+					visible: false
+				}			}
+		});
+}
+
+
+function createfig_4_1_7(fig_ID) {
+		$(fig_ID).kendoChart({
+			dataSource: fig_4_1_7_data,
+			chartArea: {
+				height: 500
+			},	
+			legend: {
+				position: "top"
+			},
+			seriesDefaults: {
+				type: "line",
+			},
+			series: [{
+        name: "Total",
+				field: "Total",
+				color: "#00aaad",
+        markers: {
+          size: 5
+        },
+        tooltip: {
+				visible: true,
+				template: "Total (#= category #): #= value.toPrecision(2) # billion (constant 2025 US$)"
+			}
+			},{
+        name: "Drug-susceptible TB\u1D47",
+				field: "DSTB",
+				color: "#012352",
+        markers: {
+          size: 5
+        },
+        tooltip: {
+				visible: true,
+				template: "Drug-susceptible TB (#= category #): #= value.toPrecision(2) # billion (constant 2025 US$)"
+			}
+			},{
+        name: "Drug-resistant TB\u1D9C",
+				field: "MDR",
+				color: "#8C0046",
+        markers: {
+          size: 5
+        },
+        tooltip: {
+				visible: true,
+				template: "Drug-resistant TB (#= category #): #= value.toPrecision(2) # billion (constant 2025 US$)"
+			}
+			},{
+        name: "TB/HIV",
+				field: "TBHIV",
+				color: "#E58B23",
+        markers: {
+          size: 5
+        },
+        tooltip: {
+				visible: true,
+				template: "TB/HIV (#= category #): #= value.toPrecision(2) # billion (constant 2025 US$)"
+			}
+			},{
+        name: "TB preventive treatment (drugs only)\u1D48",
+				field: "TPT",
+				color: "#0091D1",
+        markers: {
+          size: 5
+        },
+        tooltip: {
+				visible: true,
+				template: "TB preventive treatment (drugs only) (#= category #): #= value.toPrecision(2) # billion (constant 2025 US$)"
+			}
+			},],
+			valueAxis: {
+				labels: {
+				template: "#= kendo.format('{0}',value) #",
+				},
+				title: {
+					text: "Billions (constant 2025 US$)"
+				},
+				line: {
+					visible: false
+				},
+        max: 8
+			},
+			categoryAxis: {
+				field: "year",
+				labels: {
+					rotation: 0,
+					step: 2
+					},
+				majorGridLines: {
+					visible: false
+				}			}
+		});
+}
+
+
+
+function createfig_4_1_8(fig_ID,data,filter) {
+  	// Filter the dataset on the country variable
+		dataJSON = data.filter( element => element.g_brics == filter);
+  
+		$(fig_ID).kendoChart({		
+      dataSource: dataJSON,			
+			chartArea: {
+				height: 400
+			},	     
+      title: {
+				text: filter,
+				color: "black",
+				font: "bold 14px  Arial,Helvetica,sans-serif",
+        align: "center"
+			},	  
+			legend: {
+				position: "top"
+			},
+			seriesDefaults: {
+				type: "line",
+			},
+			series: [{
+        name: "Drug-susceptible TB\u1D9C",
+				field: "DSTB",
+				color: "#4ABAFC",
+        markers: {
+          size: 5
+        },
+        tooltip: {
+				visible: true,
+				template: "Drug-susceptible TB (#= category #): #= kendo.toString(value, 'n0').replace(/,/g, '') # million (constant 2025 US$)"
+			}
+			},{
+        name: "Drug-resistant TB\u1D48",
+				field: "MDR",
+				color: "#E63E13",
+        markers: {
+          size: 5
+        },
+        tooltip: {
+				visible: true,
+				template: "Drug-resistant TB (#= category #): #= kendo.toString(value, 'n0').replace(/,/g, '') # million (constant 2025 US$)"
+			}
+			},],
+			valueAxis: {
+				labels: {
+				template: "#= kendo.toString(value, 'n0').replace(/,/g, '') #",
+				},
+				title: {
+					text: "Millions (constant 2025 US$)"
+				},
+				line: {
+					visible: false
+				},
+			},
+			categoryAxis: {
+				field: "year",
+				labels: {
+					rotation: 0,
+					step: 2
+				},
+				majorGridLines: {
+					visible: false
+				}			}
+		});
+}
+
+
+function createfig_4_1_10a(fig_ID) {
+		$(fig_ID).kendoChart({
+			dataSource: fig_4_1_10a_data,
+			chartArea: {
+				height: 500
+			},	
+			legend: {
+				position: "bottom",
+				orientation: "vertical",
+
+			},
+			seriesDefaults: {
+				type: "line",
+			},
+			series: [{
+        name: "Low-income countries",
+				field: "LIC",
+				color: "#814550",
+        markers: {
+          size: 5
+        },
+        tooltip: {
+				visible: true,
+				template: "Low-income countries (#= category #): #= num_spacer(value) # million"
+			}
+			},{
+        name: "Lower-middle-income countries",
+				field: "LMC",
+				color: "#8FD314",
+        markers: {
+          size: 5
+        },
+        tooltip: {
+				visible: true,
+				template: "Lower-middle-income countries (#= category #): #= num_spacer(value) # million"
+			}
+			},{
+        name: "Upper-middle-income countries",
+				field: "UMC",
+				color: "#E63E13",
+        markers: {
+          size: 5
+        },
+        tooltip: {
+				visible: true,
+				template: "Upper-middle-income countries (#= category #): #= num_spacer(value) # million"
+			}
+			},],
+			valueAxis: {
+				labels: {
+				template: "#= axis_spacer(value) #",
+				},
+				title: {
+					text: "Millions (constant 2025 US$)"
+				},
+				line: {
+					visible: false
+				},
+			},
+			categoryAxis: {
+				field: "year",
+				labels: {
+					rotation: 0,
+          step: 2
+				},
+				majorGridLines: {
+					visible: false
+				}			}
+		});
+}
+
+function createfig_4_1_10b(fig_ID) {
+		$(fig_ID).kendoChart({
+			dataSource: fig_4_1_10b_data,
+			chartArea: {
+				height: 540
+			},	
+			legend: {
+				position: "bottom",
+				orientation: "vertical",
+			},
+			seriesDefaults: {
+				type: "line",
+			},
+			series: [{
+        name: "African Region",
+				field: "AFR",
+				color: "#6363C0",
+        markers: {
+          size: 5
+        },
+        tooltip: {
+				visible: true,
+				template: "African Region (#= category #): #= num_spacer(value) # million"
+			}
+			},{
+        name: "Region of the Americas",
+				field: "AMR",
+				color: "#F26829",
+        markers: {
+          size: 5
+        },
+        tooltip: {
+				visible: true,
+				template: "Region of the Americas (#= category #): #= num_spacer(value) # million"
+			}
+			},{
+        name: "South-East Asia Region",
+				field: "SEA",
+				color: "#40BF73",
+        markers: {
+          size: 5
+        },
+        tooltip: {
+				visible: true,
+				template: "South-East Asia Region (#= category #): #= num_spacer(value) # million"
+			}
+			},{
+        name: "European Region",
+				field: "EUR",
+				color: "#008DC9",
+        markers: {
+          size: 5
+        },
+        tooltip: {
+				visible: true,
+				template: "European Region (#= category #): #= num_spacer(value) # million"
+			}
+			},{
+        name: "Eastern Mediterranean Region",
+				field: "EMR",
+				color: "#BD53BD",
+        markers: {
+          size: 5
+        },
+        tooltip: {
+				visible: true,
+				template: "Eastern Mediterranean Region (#= category #): #= num_spacer(value) # million"
+			}
+			},{
+        name: "Western Pacific Region",
+				field: "WPR",
+				color: "#F4A81D",
+        markers: {
+          size: 5
+        },
+        tooltip: {
+				visible: true,
+				template: "Western Pacific Region (#= category #): #= num_spacer(value) # million"
+			}
+			},],
+			valueAxis: {
+				labels: {
+				template: "#= axis_spacer(value) #",
+				},
+				title: {
+					text: "Millions (constant 2025 US$)"
+				},
+				line: {
+					visible: false
+				},
+			},
+			categoryAxis: {
+				field: "year",
+				labels: {
+					rotation: 0,
+          step: 2
+				},
+				majorGridLines: {
+					visible: false
+				}			}
+		});
+}
+
+
+function createfig_4_1_11(fig_ID,data,title,height) {
+		$(fig_ID).kendoChart({
+			dataSource: data,
+			chartArea: {
+				height: height
+			},	
+      title: {
+				text: title,
+				color: "black",
+				font: "bold 14px  Arial,Helvetica,sans-serif",
+        align: "center"
+			},	
+			legend: {
+				position: "top"
+			},
+			seriesDefaults: {
+				type: "bar",
+        stack: true,
+        gap: 0.2
+			},
+			series: [{
+        name: "Domestic funding",
+				field: "int_pct",
+				color: "#4ABAFC",
+        tooltip: {
+				visible: true,
+				template: "Domestic funding (#= category #): #= tb_format_pct(value) #%, US$ #= tb_format_pct(dataItem.cf_int)# million"
+			}
+			},{
+        name: "Global Fund",
+				field: "gf_pct",
+				color: "#ED1D24",
+        tooltip: {
+				visible: true,
+				template: "Global Fund (#= category #): #= tb_format_pct(value) #%, US$ #= tb_format_pct(dataItem.cf_ext_gf)# million"
+			}
+			},{
+        name: "International funding (excluding Global Fund)",
+				field: "oth_pct",
+				color: "#00a76d",
+        tooltip: {
+				visible: true,
+				template: "International funding (excluding Global Fund) (#= category #): #= tb_format_pct(value) #%, US$ #= tb_format_pct(dataItem.cf_ext_ngf)# million"
+			}
+			},{
+        name: "Budget gap",
+				field: "gap_pct",
+				color: "lightgrey",
+        tooltip: {
+				visible: true,
+				template: "Budget gap (#= category #): #= tb_format_pct(value) #%, US$ #= tb_format_pct(dataItem.gap_tot)# million"
+			}
+			},],
+			valueAxis: {
+
+				title: {
+					text: "Percentage (%)"
+				},
+				line: {
+					visible: false
+				},
+				min: 0,
+				max: 100,
+			},
+			categoryAxis: {
+				field: "country",
+				labels: {
+					rotation: 0,
+				},
+				majorGridLines: {
+					visible: false
+				}			}
+		});
+}
+
+function createFig_4_1_12(fig_ID, data, grp, gp_label) {
+   
+		$(fig_ID).kendoChart({
+			dataSource: data,
+			chartArea: {
+				height: 450
+			},	
+			legend: {
+				position: "top"
+			},
+			series: [{
+        type: "rangeBar",
+        fromField: "cf",
+        toField: "gp",
+				opacity: 100,
+        color: "grey",
+       gap: 45,
+        
+			}, {
+        type: "line",
+				field: "cf",
+        opacity: 0,
+				color: "#FEB24C",
+        markers: {
+          visible: true,
+          background: "#FEB24C",
+          size: 8
+        },
+			tooltip: {
+				visible: true,
+        background: "#FEB24C",
+				template: "Expected funding: US$ #= value.toPrecision(2) # billion"
+			}
+			},{
+        type: "line",
+				field: "bud",
+        opacity: 0,
+				color: "#FC4E2A",
+        markers: {
+          visible: true,
+          background: "#FC4E2A",
+          size: 8
+        },
+			tooltip: {
+				visible: true,
+        background: "#FC4E2A",
+				template: "Required budget: US$ #= value.toPrecision(2) # billion"
+			}
+			}, {
+        type: "line",
+				field: "gp",
+        opacity: 0,
+				color: "#B10026",
+        markers: {
+          visible: true,
+          background: "#B10026",
+          size: 8
+        },
+			tooltip: {
+				visible: true,
+        background: "#B10026",
+				template: "Global Plan: US$ #= value.toPrecision(2) # billion"
+			}
+			},{
+        type: "line",
+				name: "Expected funding",
+				color: "#FEB24C"
+			},{
+        type: "line",
+				name: "Budget required",
+				color: "#FC4E2A"
+			},{
+        type: "line",
+				name: gp_label,
+				color: "#B10026"
+			},],
+			valueAxis: {
+				labels: {
+					format: "{0}",
+					rotation: "auto"
+				},
+				title: {
+					text: "Billions (constant 2025 US$)"
+				},
+				line: {
+					visible: false
+				},
+			},
+			categoryAxis: {
+				field: grp,
+				labels: {
+					rotation: "auto"
+				},
+				majorGridLines: {
+					visible: true
+				}
+			}
+
+		});
+}
+
+function createfig_4_1_13() {
+   
+		$("#fig_4_1_13").kendoChart({
+			dataSource: fig_4_1_13_data,
+			chartArea: {
+				height: 600
+			},	
+			legend: {
+				position: "bottom"
+			},
+			seriesDefaults: {
+				type: "bubble"
+			},
+			series: [{
+				xField: "x",
+        yField: "y",
+        sizeField: "size",
+        maxSize: 80,
+        minSize: 5,
+        categoryField: "country",
+				color: "color"
+			}],
+      xAxis: {
+        type: "log",
+        labels: {
+          template: "#= axis_spacer(value) #",
+          skip: 1,
+          rotation: "auto"
+                    },
+        title: {
+					text: "GDP per capita (2025 US$, log scale)"
+				},
+                },
+      yAxis: {
+        type: "log",
+        labels: {
+          template: "#= axis_spacer(value) #"
+               },
+        title: {
+					text: "Cost per person treated for drug-susceptible TB (2025 US$, log scale)"
+				},
+
+        line: {width: 1
+                    },
+                },
+      tooltip: {
+				visible: true,
+        template: "#= category #<br>GDP per capita: US$ #= num_spacer(value.x) #<br>Cost per person treated: US$ #= num_spacer(value.y) #<br>Notified cases of drug-susceptible TB: #= num_spacer(dataItem.size) #"			
+			}
+
+		});
+}
+
+function createfig_4_1_14() {
+   
+		$("#fig_4_1_14").kendoChart({
+			dataSource: fig_4_1_14_data,
+			chartArea: {
+				height: 600
+			},	
+			legend: {
+				position: "bottom"
+			},
+			seriesDefaults: {
+				type: "bubble"
+			},
+			series: [{
+				xField: "x",
+        yField: "y",
+        sizeField: "size",
+        maxSize: 80,
+        minSize: 5,
+        categoryField: "country",
+				color: "color"
+			}],
+      xAxis: {
+        type: "log",
+        labels: {
+          template: "#= axis_spacer(value) #",
+          skip: 1,
+          rotation: "auto"
+                    },
+        title: {
+					text: "GDP per capita (2025 US$, log scale)"
+				},
+                },
+      yAxis: {
+        type: "log",
+        labels: {
+          template: "#= axis_spacer(value) #"
+               },
+        title: {
+					text: "Cost per person treated for drug-resistant TB (2025 US$, log scale)"
+				},
+
+        line: {width: 1
+                    },
+                },
+      tooltip: {
+				visible: true,
+        template: "#= category #<br>GDP per capita: US$ #= num_spacer(value.x) #<br>Cost per person treated: US$ #= num_spacer(value.y) #<br>Notified cases of drug-resistant TB: #= num_spacer(dataItem.size) #"			
+			}
+
+		});
+}
+
+
+```
+
+```{js, echo=FALSE}
+
+/* Create the figures after the document has been loaded */
+$(document).ready(function() {
+  createfig_4_1_2("#fig_4_1_2b");
+
+  createfig_4_1_3("#fig_4_1_3a",fig_4_1_3_data,"BRICS\u1d47 (n=5)");
+  createfig_4_1_3("#fig_4_1_3b",fig_4_1_3_data,"High TB burden and\nglobal TB watchlist countries\noutside BRICS\u1d9c (n=28)");
+  createfig_4_1_3("#fig_4_1_3c",fig_4_1_3_data,"Rest of world (n=98)");
+  createfig_4_1_3("#fig_4_1_3d",fig_4_1_3_data,"Low-income countries");
+  createfig_4_1_3("#fig_4_1_3e",fig_4_1_3_data,"Lower-middle-income\ncountries");
+  createfig_4_1_3("#fig_4_1_3f",fig_4_1_3_data,"Upper-middle-income\ncountries");
+  createfig_4_1_3("#fig_4_1_3g",fig_4_1_3_data,"Africa");
+  createfig_4_1_3("#fig_4_1_3h",fig_4_1_3_data,"Asia\u1d48");
+  createfig_4_1_3("#fig_4_1_3i",fig_4_1_3_data,"Other regions\u1d49");
+
+    createfig_4_1_4("#fig_4_1_4_AGO",fig_4_1_4_data,"Angola");
+    createfig_4_1_4("#fig_4_1_4_COG",fig_4_1_4_data,"Congo");
+    createfig_4_1_4("#fig_4_1_4_IND",fig_4_1_4_data,"India");
+    createfig_4_1_4("#fig_4_1_4_MNG",fig_4_1_4_data,"Mongolia");
+    createfig_4_1_4("#fig_4_1_4_PAK",fig_4_1_4_data,"Pakistan");
+    createfig_4_1_4("#fig_4_1_4_THA",fig_4_1_4_data,"Thailand");
+                 
+                 createfig_4_1_4("#fig_4_1_4_BGD",fig_4_1_4_data,"Bangladesh");
+                 createfig_4_1_4("#fig_4_1_4_PRK",fig_4_1_4_data,"Democratic People's\nRepublic of Korea");
+                 createfig_4_1_4("#fig_4_1_4_IDN",fig_4_1_4_data,"Indonesia");
+                 createfig_4_1_4("#fig_4_1_4_MOZ",fig_4_1_4_data,"Mozambique");
+                 createfig_4_1_4("#fig_4_1_4_PNG",fig_4_1_4_data,"Papua New Guinea");
+                 createfig_4_1_4("#fig_4_1_4_UGA",fig_4_1_4_data,"Uganda");
+                 
+                 createfig_4_1_4("#fig_4_1_4_BRA",fig_4_1_4_data,"Brazil");
+                 createfig_4_1_4("#fig_4_1_4_COD",fig_4_1_4_data,"Democratic Republic\nof the Congo");
+                 createfig_4_1_4("#fig_4_1_4_KEN",fig_4_1_4_data,"Kenya");
+                 createfig_4_1_4("#fig_4_1_4_MMR",fig_4_1_4_data,"Myanmar");
+                 createfig_4_1_4("#fig_4_1_4_PHL",fig_4_1_4_data,"Philippines");
+                 createfig_4_1_4("#fig_4_1_4_TZA",fig_4_1_4_data,"United Republic of Tanzania");
+                 
+                 createfig_4_1_4("#fig_4_1_4_CAF",fig_4_1_4_data,"Central African Republic");
+                 createfig_4_1_4("#fig_4_1_4_ETH",fig_4_1_4_data,"Ethiopia");
+                 createfig_4_1_4("#fig_4_1_4_LSO",fig_4_1_4_data,"Lesotho");
+                 createfig_4_1_4("#fig_4_1_4_NAM",fig_4_1_4_data,"Namibia");
+                 createfig_4_1_4("#fig_4_1_4_SLE",fig_4_1_4_data,"Sierra Leone");
+                 createfig_4_1_4("#fig_4_1_4_VNM",fig_4_1_4_data,"Viet Nam");
+                 
+                 createfig_4_1_4("#fig_4_1_4_CHN",fig_4_1_4_data,"China");
+                 createfig_4_1_4("#fig_4_1_4_GAB",fig_4_1_4_data,"Gabon");
+                 createfig_4_1_4("#fig_4_1_4_LBR",fig_4_1_4_data,"Liberia");
+                 createfig_4_1_4("#fig_4_1_4_NGA",fig_4_1_4_data,"Nigeria");
+                 createfig_4_1_4("#fig_4_1_4_ZAF",fig_4_1_4_data,"South Africa");
+                 createfig_4_1_4("#fig_4_1_4_ZMB",fig_4_1_4_data,"Zambia");
+
+                 createfig_4_1_4("#fig_4_1_4_ZWE",fig_4_1_4_data,"Zimbabwe");
+                 createfig_4_1_4("#fig_4_1_4_RUS",fig_4_1_4_data,"Russian Federation");
+                 createfig_4_1_4("#fig_4_1_4_KHM",fig_4_1_4_data,"Cambodia");
+
+                 createfig_4_1_4("#fig_4_1_4_SSD",fig_4_1_4_data,"South Sudan");
+                 
+  createfig_4_1_5("#fig_4_1_5_AFG",fig_4_1_5_data,"Afghanistan");
+  createfig_4_1_5("#fig_4_1_5_BGD",fig_4_1_5_data,"Bangladesh");
+  createfig_4_1_5("#fig_4_1_5_KHM",fig_4_1_5_data,"Cambodia");
+  
+  createfig_4_1_5("#fig_4_1_5_COD",fig_4_1_5_data,"Democratic Republic\nof the Congo");
+  createfig_4_1_5("#fig_4_1_5_ETH",fig_4_1_5_data,"Ethiopia");
+  createfig_4_1_5("#fig_4_1_5_IND",fig_4_1_5_data,"India");
+  
+  createfig_4_1_5("#fig_4_1_5_IDN",fig_4_1_5_data,"Indonesia");
+  createfig_4_1_5("#fig_4_1_5_KEN",fig_4_1_5_data,"Kenya");
+  createfig_4_1_5("#fig_4_1_5_KGZ",fig_4_1_5_data,"Kyrgyzstan");
+  
+  createfig_4_1_5("#fig_4_1_5_MWI",fig_4_1_5_data,"Malawi");
+  createfig_4_1_5("#fig_4_1_5_MOZ",fig_4_1_5_data,"Mozambique");
+  createfig_4_1_5("#fig_4_1_5_MMR",fig_4_1_5_data,"Myanmar");
+  
+  createfig_4_1_5("#fig_4_1_5_NGA",fig_4_1_5_data,"Nigeria");
+  createfig_4_1_5("#fig_4_1_5_PAK",fig_4_1_5_data,"Pakistan");
+  createfig_4_1_5("#fig_4_1_5_PHL",fig_4_1_5_data,"Philippines");
+  
+  createfig_4_1_5("#fig_4_1_5_ZAF",fig_4_1_5_data,"South Africa");
+  createfig_4_1_5("#fig_4_1_5_TJK",fig_4_1_5_data,"Tajikistan");
+  createfig_4_1_5("#fig_4_1_5_UGA",fig_4_1_5_data,"Uganda");
+  
+  createfig_4_1_5("#fig_4_1_5_UKR",fig_4_1_5_data,"Ukraine");
+  createfig_4_1_5("#fig_4_1_5_TZA",fig_4_1_5_data,"United Republic of Tanzania");
+  createfig_4_1_5("#fig_4_1_5_VNM",fig_4_1_5_data,"Viet Nam");
+  
+  createfig_4_1_5("#fig_4_1_5_ZMB",fig_4_1_5_data,"Zambia");
+  createfig_4_1_5("#fig_4_1_5_ZWE",fig_4_1_5_data,"Zimbabwe");
+
+
+  createfig_4_1_6("#fig_4_1_6",fig_4_1_6_data,"",800);
+
+  createfig_4_1_7("#fig_4_1_7");
+  createfig_4_1_8("#fig_4_1_8a",fig_4_1_8_data,"BRICS\u1d43 (n=5)");
+  createfig_4_1_8("#fig_4_1_8b",fig_4_1_8_data,"High TB burden and\nglobal TB watchlist countries\noutside BRICS\u1d47 (n=28)");
+  createfig_4_1_8("#fig_4_1_8c",fig_4_1_8_data,"Rest of world (n=98)");
+  
+  createfig_4_1_10a("#fig_4_1_10a");
+  createfig_4_1_10b("#fig_4_1_10b");
+  
+  createfig_4_1_11("#fig_4_1_11a",fig_4_1_11a_data,"Low-income countries",380);
+  createfig_4_1_11("#fig_4_1_11b",fig_4_1_11b_data,"Lower-middle-income\ncountries",600);
+  createfig_4_1_11("#fig_4_1_11c",fig_4_1_11c_data,"Upper-middle-income\ncountries\u1D48",570);
+
+  createFig_4_1_12("#fig_4_1_12b",fig_4_1_12b_data, "g_income", "Global Plan");
+
+  createfig_4_1_13();
+  createfig_4_1_14();
+  
+  
+});
+
+```

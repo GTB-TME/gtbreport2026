@@ -1,0 +1,1517 @@
+---
+title: "Section 2.4 Drug-resistant TB: treatment and treatment coverage"
+author: "Takuya Yamanaka"
+date: "`r Sys.Date()`"
+knit: (function(inputFile, encoding) {
+      out_dir <- "./local";
+      rmarkdown::render(inputFile,
+                        encoding=encoding,
+                        output_dir=file.path(dirname(inputFile), out_dir))})
+output: 
+  html_fragment:
+    # Do not include a table of contents
+    toc: no
+    # Set standard figure width to 12 inches
+    fig_width: 12
+    # Do not write figure captions
+    fig_caption: FALSE
+    # to save intermediate .png
+    keep_md: FALSE
+    # Don't embed external resources (stylesheets, JS libraries) in the output 
+    self_contained: False  
+    # Don't include <div> tags around a header and the content found until the next header
+    section_divs: FALSE  
+ 
+---
+
+
+```{r setup, include=FALSE}
+# Set chunk options.
+# Results "asis" is useful to output markdown from a function
+# Suppress messages, warnings and also the ## at the beginning of printed text
+
+knitr::opts_chunk$set(echo = FALSE, 
+                      results = "asis",
+                      message = FALSE,
+                      warning = FALSE,
+                      error = TRUE, # for debugging!
+                      
+                      # Settings for better output of whomapper .png maps
+                      fig.width = 10,
+                      fig.height = 5,
+                      dpi = 350
+                      )
+
+# Kill any attempt at using factors, unless we explicitly want them!
+options(stringsAsFactors=FALSE)
+
+# Load output packages ----
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+library(ggplot2)
+library(dplyr)
+library(scales)
+library(RColorBrewer)
+# devtools::install_github("yamanakatakuya/whomapR")
+# from https://github.com/yamanakatakuya/whomapR
+library(whomapR)
+library(gtbreport)
+library(here)
+library(readr)
+
+# Load R functions ----
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+source(here("report/functions/html_links.R"))
+source(here("report/functions/output_ggplot.R"))
+
+# Get the data sets and computed values/statistics for section 2.4 ----
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+source(here('report/ch2-4_prepare_data.r'))
+
+# Show static chart in addition to Kendo chart?
+show_static = F
+
+# Save underlying data files as CSV and charts as PDF files?
+pdf_csv_folder = here::here("report/local/figures/ch2.4")
+save_csv = TRUE
+save_pdf = TRUE
+
+# Create the output folder (only if it doesn't yet exist)
+dir.create(pdf_csv_folder, showWarnings = FALSE, recursive = TRUE)
+
+```
+
+
+```{r css_js}
+# Add standard stylesheets and javascript to support kendo
+cat(writeLines(readLines(here("report/resources/headers.htm"))))
+```
+
+# 2.4 Drug-resistant TB: treatment enrolment, coverage and outcomes  
+
+<span class="red">**Draft! Prepared `r Sys.Date()` using country-reported data snapshot files from `r format(as.Date(snapshot_date), format="%d %B %Y")`!**</span>
+
+People with drug-resistant TB (DR-TB) need treatment with regimens that include second-line drugs, such as bedaquiline and fluoroquinolones (`r ref_lnk("1")`). WHO recommends different regimens for rifampicin-resistant TB (RR-TB); isoniazid-resistant TB; pre-extensively drug-resistant TB (pre-XDR-TB, defined as TB that is resistant to rifampicin and any fluoroquinolone) and XDR-TB (resistance to rifampicin, any fluoroquinolone and at least one of bedaquiline or linezolid). These regimens are more expensive (US\$&nbsp;200&#8211;600 per person based on prices quoted by the Global TB Drug Facility) compared with first-line treatments for drug-susceptible TB (around US\$&nbsp;50 per person) (`r ref_lnk("2")`). They may also cause more adverse events. 
+
+The latest recommendations for treatment of drug-resistant TB include 3 major categories of regimen (`r ref_lnk("1")`). The first category consists of two 6-month all-oral regimens for people with RR-TB (with or without resistance to fluoroquinolones). The second category includes several all-oral short regimens of 9 months for people with RR-TB who do not have any resistance to fluoroquinolones. The third category includes longer regimens of 18--20 months. The 6-month regimens are prioritized for use while the longest regimens are a last resort.  
+
+
+Globally in `r report_year-1`, `r int_spacer(f2.4.1_txt$rr_2025)` people were enrolled on treatment for RR-TB (including the subset of people with pre-XDR-TB and XDR-TB). This was a reduction (of `r scales::percent(f2.4.1_txt$pct_increase_2524/100*(-1), accuracy = 0.1)`) from `r int_spacer(f2.4.1_txt$rr_2024)` in `r report_year-2`, following a previous reduction between 2023 and 2024. The decline between `r report_year-2` and `r report_year-1` can be partly attributed to a declining global trend in the estimated incidence of RR-TB (<span class="red">Section 1.3</span>). Almost all (`r int_spacer(f2.4.1b_txt$pcnt)`%) of those enrolled on treatment for RR-TB were people aged &#8805;15 years (`r lnk("Fig. 2.4.1")`). 
+
+### `r anch("Fig. 2.4.1")`<span class="red">Fig. 2.4.1</span> The global number of people reported to have been enrolled on treatment for RR-TB, 2010&#8211;`r report_year-1`
+<div class="subhead">Global data disaggregated by age are not available for the years before 2018.</div>
+
+```{r fig_2.4.1, fig.alt="Bar chart of numbers treated for RR-TB each year since 2010"}
+
+f2.4.1_plot <- f2.4.1b_data |> 
+  
+  ggplot(aes(x=year, y=how_many)) +
+  geom_line(aes(color=age_group), size=2) +
+  
+  facet_wrap( ~ age_group, ncol = 3, scales="free") + expand_limits(y = 0) +
+  
+  geom_blank(aes(y = y_upper_limit)) +
+  
+  scale_x_continuous(name="Year",
+                     breaks = seq(0, report_year-1, by = 2)) +
+  
+  scale_colour_manual(values = c("#A5D727", palette_gtb("succ"), "red")) +
+  
+  # display y-axis scale in millions
+  scale_y_continuous(name = "Thousands", labels = function(i){round(i/1e3)}) +
+  
+  theme_gtb()  +
+  
+  # Get rid of annoying x-axis line and ticks
+  theme(axis.line.x = ggplot2::element_blank(),
+        axis.ticks.x = element_blank(),
+        legend.position = "none")
+
+
+output_ggplot(f2.4.1_plot, f2.4.1_data, show_static, pdf_csv_folder, save_csv, save_pdf)
+
+```
+<div class="row">
+<div class="col-md-4">
+  <div id="fig_2_4_1_all"></div>
+</div>
+
+<div class="col-md-4">
+  <div id="fig_2_4_1_adult"></div>
+</div>	
+
+<div class="col-md-4">
+  <div id="fig_2_4_1_children"></div>
+</div>	
+</div>
+<div id="fig_2_4_1"></div>
+
+<hr />
+<br />
+
+
+The numbers of people enrolled on treatment for RR-TB are much lower than the estimated number of people developing RR-TB (incident cases) each year (`r lnk("Fig. 2.4.2")`). Among WHO regions, the smallest gap in `r report_year-1` was in the European Region, and the largest was in the South-East Asia Region.
+
+Closing the gap requires improvements in overall detection of people with TB (<span class="red">Section 2.3</span>), improvements in the percentage of those diagnosed with TB who are bacteriologically confirmed (necessary to test for drug resistance) and improvements in the coverage of testing for RR-TB (<span class="red">Section 2.2</span>). For example, only 65% of people diagnosed with pulmonary TB in 2025 were bacteriologically confirmed.
+
+### `r anch("Fig. 2.4.2")`<span class="red">Fig. 2.4.2</span> Number of people enrolled on treatment for RR-TB<span style="color:red;"> (red)</span> compared with estimates of the number of incident cases of RR-TB (95% uncertainty interval shown in <span style="color:`r gtbreport::palette_gtb("inc")`">green</span>), ^a^ globally and for WHO regions, 2015&#8211;`r report_year-1`
+
+```{r fig_2.4.2, fig.width=14, fig.height=6, eval=show_estimates}
+f2.4.2_plot <- f2.4.2_data |> 
+  mutate(year == as.integer(year)) |>
+  
+  ggplot(aes(x=year, y=rr_treated, ymin=0)) +
+
+  geom_line(size=1, colour = "red") +
+  
+  # geom_line(size=1, colour = "#277abe") +
+  
+  # geom_line(aes(year, rr_treated),
+  #           size=1,
+  #           colour="Red") +
+  
+  geom_ribbon(aes(x=year, 
+                  ymin=e_inc_rr_num_lo, 
+                  ymax=e_inc_rr_num_hi),
+              fill=gtbreport::palette_gtb("inc"),
+              alpha=0.4) +
+  
+  geom_line(aes(year, e_inc_rr_num),
+            size=1,
+            colour=gtbreport::palette_gtb("inc")) +
+  
+  facet_wrap( ~ entity, ncol = 4, scales="free_y") +
+  
+  scale_x_continuous(name="Year",
+                     breaks = seq(2015, report_year-1, by = 2)) +
+
+  # display y-axis scale in millions
+  scale_y_continuous(name = "Number per year",labels=function(x) format(x, big.mark = " ", scientific = FALSE)) +
+  # scale_y_continuous(name = "Per year", 
+  #                    # Use the remainder operator in the labeller function to make sure we don't get weird effects
+  #                    # when plotting small numbers
+  #                    labels = function(i){ifelse((i/1e6) %% 1 == 0, round(i/1e6), round(i/1e6, 1))}) +
+  
+  theme_gtb()  +
+  
+  # Get rid of annoying x-axis line and ticks
+  theme(axis.line.x = ggplot2::element_blank(),
+        axis.ticks.x = element_blank())
+
+output_ggplot(f2.4.2_plot, f2.4.2_data, show_static, pdf_csv_folder, save_csv, save_pdf)
+
+```
+<div id="fig_2_4_2_global"></div>
+
+<div class="row">
+<div class="col-md-4">
+<div id="fig_2_4_2_afro"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_2_4_2_amro"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_2_4_2_searo"></div>
+</div>
+</div>
+
+<div class="row">
+<div class="col-md-4">
+<div id="fig_2_4_2_euro"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_2_4_2_emro"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_2_4_2_wpro"></div>
+</div>
+</div>
+<div class="footnote">^a^ The time period corresponds to the period for which estimates of the incidence of RR-TB are available (see <span class="red">Section 1.3</span>).</div>
+
+
+<hr />
+<br />
+
+In most of the 30 countries in WHO’s list of high RR-TB burden countries for the period 2026&#8211;2030 (<span class="red">Annex 3</span> of the core report document), there are considerable gaps between the numbers of people enrolled on treatment for RR-TB and the estimated number of incident cases of RR-TB, although these have been narrowing in some countries since 2010 (`r lnk("Fig. 2.4.3")`).
+
+### `r anch("Fig. 2.4.3")`<span class="red">Fig. 2.4.3</span> Number of people enrolled on treatment for RR-TB<span style="color:red;"> (red)</span> compared with estimates of the number of incident cases of RR-TB (95% uncertainty interval shown in <span style="color:`r gtbreport::palette_gtb("inc")`">green</span>), 2015&#8211;`r report_year-1`,^a^ 30 high RR-TB burden countries^b^
+
+```{r fig_2.4.3, fig.alt="Panel of line charts of RR-TB cases detected, RR-TB put on treatment since 2010 for 30 countries", fig.height=12}
+
+f2.4.3_plot <- f2.4.3_data |> 
+  
+  mutate(year == as.integer(year)) |>
+
+  ggplot(aes(x=year, y=rr_treated, ymin=0)) +
+  
+  geom_line(size=1, colour = "red") +
+  # geom_line(size=1, colour = "#277abe") +
+  
+  # geom_line(aes(year, rr_treated),
+  #           size=1,
+  #           colour="Red") +
+  
+  geom_ribbon(aes(x=year, 
+                  ymin=e_inc_rr_num_lo, 
+                  ymax=e_inc_rr_num_hi),
+              fill=gtbreport::palette_gtb("inc"),
+              alpha=0.4) +
+  
+  geom_line(aes(year, e_inc_rr_num),
+            size=1,
+            colour=gtbreport::palette_gtb("inc")) +
+  
+  facet_wrap( ~ entity, ncol = 4, scales="free_y") +
+  
+  scale_x_continuous(name="Year",
+                     breaks = seq(2015, report_year-1, by = 2)) +
+
+  # display y-axis scale in millions
+  scale_y_continuous(name = "Number per year",labels=function(x) format(x, big.mark = " ", scientific = FALSE)) +
+  # scale_y_continuous(name = "Per year", 
+  #                    # Use the remainder operator in the labeller function to make sure we don't get weird effects
+  #                    # when plotting small numbers
+  #                    labels = function(i){ifelse((i/1e6) %% 1 == 0, round(i/1e6), round(i/1e6, 1))}) +
+  
+  theme_gtb()  +
+  
+  # Get rid of annoying x-axis line and ticks
+  theme(axis.line.x = ggplot2::element_blank(),
+        axis.ticks.x = element_blank())
+
+output_ggplot(f2.4.3_plot, f2.4.3_data, show_static, pdf_csv_folder, save_csv, save_pdf)
+
+
+```
+<div class="row">
+<div class="col-md-4">
+<div id="fig_2_4_3_AFG"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_2_4_3_AGO"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_2_4_3_AZE"></div>
+</div>
+</div>
+
+<div class="row">
+<div class="col-md-4">
+<div id="fig_2_4_3_BRA"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_2_4_3_CHN"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_2_4_3_PRK"></div>
+</div>
+</div>
+
+<div class="row">
+<div class="col-md-4">
+<div id="fig_2_4_3_COD"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_2_4_3_GIN"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_2_4_3_IND"></div>
+</div>
+</div>
+
+<div class="row">
+<div class="col-md-4">
+<div id="fig_2_4_3_IDN"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_2_4_3_KAZ"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_2_4_3_KGZ"></div>
+</div>
+</div>
+
+<div class="row">
+<div class="col-md-4">
+<div id="fig_2_4_3_MNG"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_2_4_3_MOZ"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_2_4_3_MMR"></div>
+</div>
+</div>
+
+<div class="row">
+<div class="col-md-4">
+<div id="fig_2_4_3_NPL"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_2_4_3_NGA"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_2_4_3_PAK"></div>
+</div>
+</div>
+
+<div class="row">
+<div class="col-md-4">
+<div id="fig_2_4_3_PNG"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_2_4_3_PER"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_2_4_3_PHL"></div>
+</div>
+</div>
+
+<div class="row">
+<div class="col-md-4">
+<div id="fig_2_4_3_RUS"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_2_4_3_SOM"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_2_4_3_ZAF"></div>
+</div>
+</div>
+
+<div class="row">
+<div class="col-md-4">
+<div id="fig_2_4_3_TJK"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_2_4_3_TKM"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_2_4_3_UKR"></div>
+</div>
+</div>
+
+<div class="row">
+<div class="col-md-4">
+<div id="fig_2_4_3_UZB"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_2_4_3_VNM"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_2_4_3_ZMB"></div>
+</div>
+</div>
+
+<div class="footnote">^a^ Enrolments on treatment were slightly higher than the estimated number of incident cases in `r knitr::combine_words(f2.4.3_txt$country_in_text_EN, oxford_comma=FALSE)` in `r report_year-1`. Possible explanations include enrolment of people diagnosed in previous years and enrolment of the same person on more than one treatment regimen (resulting in reregistration for treatment and that person being counted twice) within a 1-year period. Reregistration is recommended by WHO when a change of treatment is required (`r ref_lnk("3")`), for example due to adverse events.
+<br>^b^ Incidence estimates are not shown for the Democratic People’s Republic of Korea and India because they are under review. For India, see <span style="color: red;">Annex 4</span> of the core report document.</div>
+
+
+<hr />
+<br />
+
+In `r report_year-1`, 10 countries accounted for `r ftb(f2.4.4_txt$pct_gap_top_ten)`% of the global gap between the estimated number of people who developed RR-TB (incident cases) and the number of people enrolled on treatment for RR-TB (`r lnk("Fig. 2.4.4")`).
+
+FOLLOWING TEXT REMOVED FROM 2026 WEBPAGE:
+<`r f2.4.4_data |> slice(1) |> select(country)` (`r ftb(f2.4.4_data |> slice(1) |> select(pct_gap))`%), the `r f2.4.4_data |> slice(2) |> select(country)` (`r ftb(f2.4.4_data |> slice(2) |> select(pct_gap))`%), `r f2.4.4_data |> slice(3) |> select(country)` (`r ftb(f2.4.4_data |> slice(3) |> select(pct_gap))`%), `r f2.4.4_data |> slice(4) |> select(country)` (`r ftb(f2.4.4_data |> slice(4) |> select(pct_gap))`%), `r f2.4.4_data |> slice(5) |> select(country)` (`r ftb(f2.4.4_data |> slice(5) |> select(pct_gap))`%), `r f2.4.4_data |> slice(6) |> select(country)` (`r ftb(f2.4.4_data |> slice(6) |> select(pct_gap))`%), `r f2.4.4_data |> slice(7) |> select(country)` (`r ftb(f2.4.4_data |> slice(7) |> select(pct_gap))`%), the `r f2.4.4_data |> slice(8) |> select(country)` (`r ftb(f2.4.4_data |> slice(8) |> select(pct_gap))`%), `r f2.4.4_data |> slice(9) |> select(country)` (`r ftb(f2.4.4_data |> slice(9) |> select(pct_gap))`%) and `r f2.4.4_data |> slice(10) |> select(country)` (`r ftb(f2.4.4_data |> slice(10) |> select(pct_gap))`%).>
+
+### `r anch("Fig. 2.4.4")`<span class="red">Fig. 2.4.4</span> The ten countries with the largest gaps between the number of people started on treatment for RR-TB and the best estimates of RR-TB incidence, `r report_year-1`^a^
+
+```{r fig_2.4.4, fig.alt="World map showing the ten countries with the largest gaps between the number of people started on treatment for RR-TB and the best estimates of RR-TB incidence",  eval=show_estimates}
+
+f2.4.4_plot <- f2.4.4_data |>
+  
+  arrange(iso3) |>
+  
+  bubblemapper(legend_title = "Size of gap",
+            legend_pos = c(0.14, 0.3),
+            bubble_col = "green3",
+            scale_breaks = c(5e3, 2.6e4, 5e4),
+            scale_limits = c(3e3, 2e5),
+            scale_labels = c("5 000","25 000","50 000")) +
+  
+  add_annotate(geom='text', label='Myanmar', x=90, y=-10, size=2, include_coord = TRUE) +
+  add_annotate('segment', x=96, xend=88, y=19, yend=-8, linewidth = 0.2) +
+  
+  # add_annotate(geom='text', label='Viet Nam', x=150, y=25, size=2) +
+  # add_annotate('segment', x=108, xend=142, y=16, yend=25, linewidth = 0.2) +
+
+  add_annotate(geom='text', label='Philippines', x=150, y=17, size=2) +
+  add_annotate('segment', x=125, xend=142, y=8, yend=17, linewidth = 0.2) +
+  
+  add_annotate('text', label='China', x=150, y=36, size=2) +
+  add_annotate('segment',x=98, xend=145, y=36, yend=36, linewidth = 0.2) +
+  
+  add_annotate(geom='text', label='India', x=78, y=-5, size=2) +
+  add_annotate('segment', x=81, xend=78, y=22.5, yend=-3.5, linewidth = 0.2) +
+  
+  add_annotate(geom='text', label='Pakistan', x=68, y=0, size=2) +
+  add_annotate('segment', x=70, xend=67, y=30.5, yend=1, linewidth = 0.2) +
+  
+  add_annotate(geom='text', label='Indonesia', x=107, y=-15, size=2) +
+  add_annotate('segment', x=113, xend=105, y=0, yend=-14, linewidth = 0.2) +
+  
+  # add_annotate(geom='text', label='Nigeria', x=-10, y=0, size=2) +
+  # add_annotate('segment', x=8, xend=-4, y=9, yend=0, linewidth = 0.2) +
+
+  add_annotate(geom='text', label='Democratic\nRepublic\nof the Congo', x=-9, y=-20, size=2) +
+  add_annotate('segment', x=23, xend=0, y=-4, yend=-20, linewidth = 0.2) +
+
+  # annotate(geom='text', label="Democratic People's Republic of Korea", x=105, y=81, hjust=0, size=3) +
+  # geom_segment(x=127, xend=127, y=40, yend=78) +
+  
+  add_annotate(geom='text', label='Ukraine', x=35, y=90, size=2) +
+  add_annotate('segment', x=34, xend=36, y=48, yend=80, linewidth = 0.2) +
+  
+  add_annotate(geom='text', label='Papua New Guinea', x=150, y=4, size=2) +
+  add_annotate('segment', x=145, xend=150, y=-7, yend=2.5, linewidth = 0.2) +
+
+  add_annotate(geom='text', label='South Africa', x=53, y=-29, size=2) +
+  add_annotate("segment", x=26, xend=43, y=-28.5, yend=-29, linewidth = 0.2) 
+
+  # annotate(geom='text', label='Russian Federation', x=35, y=80, hjust=0, size=3) +
+  # geom_segment(x=99, xend=70, y=62, yend=78) +
+
+
+output_ggplot(f2.4.4_plot, f2.4.4_data, show_static = T, pdf_csv_folder, save_csv, save_pdf)
+
+
+```
+<div class="footnote">^a^ The ten countries ranked in order of the size of the gap between the number of people enrolled on treatment for RR-TB and the best estimates of the incidence of RR-TB in `r report_year-1` are `r if(show_estimates){knitr::combine_words(f2.4.4_data$country_in_text_EN, oxford_comma=FALSE)}`. Incidence estimates for India are under review. See <span style="color: red;">Annex 4</span> of the core report document.</div>
+
+<hr />
+<br />
+
+Globally, the treatment success rate for people enrolled on treatment for RR-TB in `r report_year-3` (the latest year for which outcome data are available) was `r ftb(f2.4.5_txt$c_tsr_2023)`%; this was a small decrease from `r ftb(f2.4.5_txt$c_tsr_2022)`% in `r report_year-4`, but an improvement from `r ftb(f2.4.5_txt$c_tsr_2021)`% in `r report_year-5` and much better (+`r ftb(f2.4.5_txt$c_tsr_2023-f2.4.5_txt$c_tsr_2012)` percentage points) than the level of `r ftb(f2.4.5_txt$c_tsr_2012)`% in 2012 (`r lnk("Fig. 2.4.5")`).
+
+### `r anch("Fig. 2.4.5")`<span class="red">Fig. 2.4.5</span> Treatment outcomes for people diagnosed with RR-TB globally, 2012&#8211;`r report_year-3` 
+
+```{r fig_2.4.5, fig.alt="Horizontal bar charts showing TB treatment outcomes globally by year since 2012 for RR-TB"}
+
+f2.4.5_plot <- f2.4.5_data |>
+  
+  ggplot(aes(year,
+             value,
+             fill = factor(outcome,
+                           levels = c("Treatment success",
+                                      "Treatment failed",
+                                      "Died",
+                                      "Lost to follow-up",
+                                      "Not evaluated")))) +
+ 
+  geom_col(position = position_stack(reverse = TRUE)) +
+
+  coord_flip() +
+
+  theme_gtb() +
+
+  scale_fill_manual("", 
+                    values = c("Treatment success" = palette_gtb("succ"),
+                               "Treatment failed" = palette_gtb("fail"),
+                               "Died" = palette_gtb("died"),
+                               "Lost to follow-up" = palette_gtb("ltfu"),
+                               "Not evaluated" = palette_gtb("neval"))) +
+
+  labs(x="Year started on treatment", y="Percentage of cohort") +
+
+  scale_x_continuous(breaks = seq(2012, report_year-3)) +
+
+  geom_text(data=subset(f2.4.5_data,
+                        outcome=="Treatment success"),
+            aes(label = round(value, digits = 0)),
+			            position = position_stack(reverse = TRUE),
+            size=3,
+            hjust=1.5,
+            color="white")
+
+output_ggplot(f2.4.5_plot, f2.4.5_data, show_static, pdf_csv_folder, save_csv, save_pdf)
+
+```
+<div id="fig_2_4_5"></div>
+
+```{r fig_2.4.5b, fig.alt="Horizontal bar charts showing TB treatment outcomes globally by year since 2012 for RR-TB",fig.height=21,eval=FALSE}
+
+f2.4.5b_plot <- f2.4.5b_data |>
+
+  ggplot(aes(year,
+             value,
+             fill = factor(outcome,
+                           levels = c("Treatment success",
+                                      "Treatment failed",
+                                      "Died",
+                                      "Lost to follow-up",
+                                      "Not evaluated")))) +
+ 
+  geom_col(position = position_stack(reverse = TRUE)) +
+
+  coord_flip() +
+  
+  facet_wrap(~ country, ncol = 3, scales="free_y") +
+
+  theme_gtb() +
+
+  scale_fill_manual("", 
+                    values = c("Treatment success" = palette_gtb("succ"),
+                               "Treatment failed" = palette_gtb("fail"),
+                               "Died" = palette_gtb("died"),
+                               "Lost to follow-up" = palette_gtb("ltfu"),
+                               "Not evaluated" = palette_gtb("neval"))) +
+
+  labs(x="Year started on treatment", y="Percentage of cohort") +
+
+  scale_x_continuous(breaks = seq(2012, report_year-3)) 
+
+output_ggplot(f2.4.5b_plot, f2.4.5b_data, show_static, pdf_csv_folder, save_csv, save_pdf)
+
+```
+
+
+<hr />
+<br />
+
+Among WHO regions, the treatment success rate in `r report_year-3` was lowest in the `r f2.4.6_txt2$lo_region` and highest in the `r f2.4.6_txt2$hi_region` (`r lnk("Fig. 2.4.6")`).
+
+### `r anch("Fig. 2.4.6")`<span class="red">Fig. 2.4.6</span> Treatment outcomes for people diagnosed with RR-TB who were started on treatment in `r report_year-3`, WHO regions and globally  
+
+```{r fig_2.4.6, fig.alt="Horizontal bar chart showing TB treatment outcomes in RR-TB cases for WHO regions and globally"}
+
+f2.4.6_plot <- f2.4.6_data |>
+
+  ggplot(aes(x=entity, 
+             y=value, 
+             fill = factor(outcome,
+                           levels = c("Treatment success",
+                                      "Treatment failed",
+                                      "Died",
+                                      "Lost to follow-up",
+                                      "Not evaluated")))) +
+ 
+  geom_col(position = position_stack(reverse = TRUE)) +
+  coord_flip() +
+
+  theme_gtb() +
+  
+  scale_fill_manual("", 
+                    values = c("Treatment success" = palette_gtb("succ"),
+                               "Treatment failed" = palette_gtb("fail"),
+                               "Died" = palette_gtb("died"),
+                               "Lost to follow-up" = palette_gtb("ltfu"),
+                               "Not evaluated" = palette_gtb("neval"))) +
+  
+  labs(x="", y="Percentage of cohort") +
+
+  geom_text(data=subset(f2.4.6_data, 
+                        outcome=="Treatment success"),
+            aes(label = round(value, digits = 0)),
+            position = position_stack(reverse = TRUE), 
+            size=3,
+            hjust=1.5,
+            color="white")
+
+
+output_ggplot(f2.4.6_plot, f2.4.6_data, show_static, pdf_csv_folder, save_csv, save_pdf)
+
+```
+<div id="fig_2_4_6"></div>
+
+
+<hr />
+<br />
+
+In 2022, the all-oral treatment regimen known as BPaLM (bedaquiline, pretomanid, linezolid, moxifloxacin) was the first 6-month regimen to be approved for treatment of RR-TB; a second 6-month regimen, known as BDLLfxC (bedaquiline, delamanid, linezolid, levofloxacin, clofazimine), was approved in 2024 (`r ref_lnk("1")`). The use of the 6-month regimens is expanding. 
+
+``` OLD TEXT AND CODE REPLACED WITH THE TEXT BELOW - WEBPAGE EDITED----Globally in `r report_year - 1`, `r int_spacer(f2.4.7_txt$dr_6m_tx_2025)` people with RR-TB (`r ftb(f2.4.7_txt$dr_6m_tx_2025/f2.4.1_txt$rr_2025*100)`% of the total) were reported to have been started on treatment with 6-month regimens, a substantial increase from `r int_spacer(f2.4.7_txt$dr_6m_tx_2024)` in `r report_year - 2` and `r int_spacer(f2.4.7_txt$dr_6m_tx_2023)` in `r report_year - 3`. By the end of `r report_year - 1`, 6-month regimens were being used for treatment of RR-TB in `r f2.4.7_txt2$dr_6m_used_2025` countries, up from `r f2.4.7_txt2$dr_6m_used_2024` at the end of `r report_year - 2` and `r f2.4.7_txt2$dr_6m_used_2023` at the end of `r report_year - 3` (`r lnk("Fig. 2.4.7")`). 
+```
+
+There was a big expansion in the use of 6-month treatment regimens in 2025. Globally in 2025, 6-month regimens were used for 41% of the people treated for RR-TB, a substantial increase from 18% in 2024 and 3% in 2023 (Fig. 2.4.9 below). By the end of 2025, 6-month regimens were being used for the treatment of RR-TB in 106 countries, up from 98 at the end of 2024 and 60 at the end of 2023 (Fig. 2.4.7).
+
+
+### `r anch("Fig. 2.4.7")`<span class="red">Fig. 2.4.7</span> Countries that had used 6-month treatment regimens for RR-TB by the end of `r report_year-1`
+
+```{r fig_2.4.7, fig.alt="World map showing which countries used all-oral 6-month (BPaLM/BPaL 6-9 months) RR-TB treatment regimens"}
+
+f2.4.7_plot <- f2.4.7_data |> 
+
+  whomapper(colours=c("blueviolet","#EFF3FF"),
+         legend_title = "")
+
+
+output_ggplot(f2.4.7_plot, f2.4.7_data, show_static = T, pdf_csv_folder, save_csv, save_pdf)
+
+```
+
+<hr />
+<br />
+
+By the end of `r report_year-1`, `r ftb(f2.4.8_txt$dr_9m_used_2025)` countries were using 9-month regimens for the treatment of RR-TB (`r lnk("Fig. 2.4.8")`). This was a reduction from `r ftb(f2.4.8_txt$dr_9m_used_2024)` in `r report_year-2` and `r ftb(f2.4.8_txt$dr_9m_used_2023)` in `r report_year-3`. 
+
+### `r anch("Fig. 2.4.8")`<span class="red">Fig. 2.4.8</span> Countries that had used 9-month treatment regimens for RR-TB by the end of `r report_year-1`
+
+```{r fig_2.4.8, fig.alt="World map showing which countries used all-oral shorter RR-TB treatment regimens"}
+
+f2.4.8_plot <- f2.4.8_data |> 
+
+  whomapper(colours=c("#4975a8", "#d6f5f5"),
+         legend_title = "")
+
+
+output_ggplot(f2.4.8_plot, f2.4.8_data, show_static = T, pdf_csv_folder, save_csv, save_pdf)
+
+```
+
+<hr />
+<br />
+
+Globally in `r report_year-1`, longer regimens (18&#8211;20 months) were still the most commonly used of the 3 major categories of regimen for treatment of RR-TB; `r ftb(f2.4.9_txt$dr_18mplus_tx)`% of people with RR-TB were enrolled on treatment with longer regimens, followed by 6-month (`r ftb(f2.4.9_txt$dr_6m_tx)`%) regimens and 9-month regimens (`r ftb(f2.4.9_txt$dr_9m_tx)`%) (`r lnk("Fig. 2.4.9")`).
+
+In 5 of the 6 WHO regions, all-oral 6-month regimens are now the most frequently used treatment for RR-TB (`r lnk("Fig. 2.4.9")`). This is a landmark shift compared with previous years. The share of people diagnosed with RR-TB who were treated with 6-month regimens was highest in the `r f2.4.9_6month_txt |> slice(1) |> select(entity)` (`r ftb(f2.4.9_6month_txt |> slice(1) |> select(pcnt))`%) and the `r f2.4.9_6month_txt |> slice(2) |> select(entity)` (`r ftb(f2.4.9_6month_txt |> slice(2) |> select(pcnt))`%). The European Region is now the only part of the world where longer regimens are still used for a large proportion of people with RR-TB (`r ftb(f2.4.9_EUR_txt$pcnt)`%).
+
+
+### `r anch("Fig. 2.4.9")`<span class="red">Fig. 2.4.9</span> Percentage of people with RR-TB treated with 6-month, 9-month or longer (18&#8211;20 months) regimens, 2019&#8211;`r report_year-1`
+
+```{r fig_2.4.9, fig.alt="World map showing proportion of drug-resistant TB patients followed up for adverse events"}
+
+f2.4.9_plot <- f2.4.9_data |> 
+  
+  mutate(regimen = factor(regimen, levels = c("dr_6m_tx","dr_9m_tx", "dr_18mplus_tx","dr_unk_tx"),
+                          labels = c("All-oral 6-month regimens", "All-oral 9-month regimens", "Longer regimens (18\u201320 months)","Regimens unknown"))) |>
+  ggplot(aes(x=year, y=pcnt, ymin=0, colour=regimen)) +
+  geom_line(size = 1.3) +
+  geom_point(aes(col=regimen), size = 1.5)+
+  geom_point(col="white", size = 0.7)+
+  
+  facet_wrap(~ entity, ncol = 4) +
+
+  scale_x_continuous(name="Year",
+                     breaks = seq (2019, report_year-1, by = 1)) +
+  scale_y_continuous(name = "Proportion of people with RR-TB\nstarted on treatment with each regimens (%)") +
+  scale_color_manual(values=c("blueviolet","dodgerblue3","#880e0e","grey40")) +
+  
+  theme_gtb() +
+  
+  # Get rid of annoying x-axis line and ticks
+  theme(axis.line.x = ggplot2::element_blank(),
+        axis.ticks.x = element_blank())
+
+output_ggplot(f2.4.9_plot, f2.4.9_data, show_static, pdf_csv_folder, save_csv, save_pdf)
+
+```
+<div id="fig_2_4_9_global"></div>
+
+<div class="row">
+<div class="col-md-4">
+<div id="fig_2_4_9_AFR"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_2_4_9_AMR"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_2_4_9_SEA"></div>
+</div>
+</div>
+
+<div class="row">
+<div class="col-md-4">
+<div id="fig_2_4_9_EUR"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_2_4_9_EMR"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_2_4_9_WPR"></div>
+</div>
+</div>
+
+<hr />
+<br />
+
+Trends in the percentage of people with RR-TB who were treated with the 3 major categories of regimen vary considerably among the 30 high RR-TB burden countries (`r lnk("Fig. 2.4.10")`). In general, there was a significant increase in the percentage of people with RR-TB who were treated with all-oral 6-month regimens between 2023 and `r report_year-1`.
+
+In `r report_year-1`, `r f2.4.10_6month_txt |> nrow()` countries used the all-oral 6-month regimens for at least 40% of people with RR-TB: `r knitr::combine_words(f2.4.10_6month_txt$country_in_text_EN, oxford_comma=FALSE)`.  More than half of those with RR-TB were still treated with longer (18–20 months) regimens in `r f2.4.10_18mplus_txt |> nrow()` countries: `r knitr::combine_words(f2.4.10_18mplus_txt$country_in_text_EN, oxford_comma=FALSE)`. 
+
+### `r anch("Fig. 2.4.10")`<span class="red">Fig. 2.4.10</span> Percentage of people with RR-TB treated with 6-month, 9-month or longer (18&#8211;20 months) regimens, 30 high RR-TB burden countries, 2019&#8211;`r report_year-1`
+
+```{r fig_2.4.10, fig.asp=1.3,  fig.alt="use of RR-TB regimens by 30 high DR burden countries"}
+
+f2.4.10_plot <- f2.4.10_data |> 
+  
+  mutate(regimen = factor(regimen, levels = c("dr_6m_tx","dr_9m_tx", "dr_18mplus_tx","dr_unk_tx"),
+                          labels = c("All-oral 6-month regimens", "All-oral 9-month regimens", "Longer regimens (18\u201320 months)","Regimens unknown"))) |>
+  ggplot(aes(x=year, y=pcnt, ymin=0, colour=regimen)) +
+  geom_line(size = 1.3) +
+  geom_point(aes(col=regimen), size = 1.5)+
+  geom_point(col="white", size = 0.7)+
+ 
+  facet_wrap(~ country, ncol = 4) +
+  
+  scale_x_continuous(name="Year",
+                     breaks = seq (2019, report_year-1, by = 1)) +
+  scale_y_continuous(name = "Proportion of people with RR-TB\nstarted on treatment with each regimens (%)") +
+  scale_color_manual(values=c("blueviolet","dodgerblue3","#880e0e","grey40")) +
+  
+  theme_gtb() +
+  
+  # Get rid of annoying x-axis line and ticks
+  theme(axis.line.x = ggplot2::element_blank(),
+        axis.ticks.x = element_blank())
+
+
+output_ggplot(f2.4.10_plot, f2.4.10_data, show_static, pdf_csv_folder, save_csv, save_pdf)
+
+```
+<div class="row">
+<div class="col-md-4">
+<div id="fig_2_4_10_AFG"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_2_4_10_AGO"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_2_4_10_AZE"></div>
+</div>
+</div>
+
+<div class="row">
+<div class="col-md-4">
+<div id="fig_2_4_10_BRA"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_2_4_10_CHN"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_2_4_10_PRK"></div>
+</div>
+</div>
+
+<div class="row">
+<div class="col-md-4">
+<div id="fig_2_4_10_COD"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_2_4_10_GIN"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_2_4_10_IND"></div>
+</div>
+</div>
+
+<div class="row">
+<div class="col-md-4">
+<div id="fig_2_4_10_IDN"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_2_4_10_KAZ"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_2_4_10_KGZ"></div>
+</div>
+</div>
+
+<div class="row">
+<div class="col-md-4">
+<div id="fig_2_4_10_MNG"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_2_4_10_MOZ"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_2_4_10_MMR"></div>
+</div>
+</div>
+
+<div class="row">
+<div class="col-md-4">
+<div id="fig_2_4_10_NPL"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_2_4_10_NGA"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_2_4_10_PAK"></div>
+</div>
+</div>
+
+<div class="row">
+<div class="col-md-4">
+<div id="fig_2_4_10_PNG"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_2_4_10_PER"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_2_4_10_PHL"></div>
+</div>
+</div>
+
+<div class="row">
+<div class="col-md-4">
+<div id="fig_2_4_10_RUS"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_2_4_10_SOM"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_2_4_10_ZAF"></div>
+</div>
+</div>
+
+<div class="row">
+<div class="col-md-4">
+<div id="fig_2_4_10_TJK"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_2_4_10_TKM"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_2_4_10_UKR"></div>
+</div>
+</div>
+
+<div class="row">
+<div class="col-md-4">
+<div id="fig_2_4_10_UZB"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_2_4_10_VNM"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_2_4_10_ZMB"></div>
+</div>
+</div>
+
+
+<hr />
+<br />
+
+
+In `r report_year-1`, in most countries, at least some people diagnosed with drug-resistant TB were being actively and systematically monitored for adverse events (`r lnk("Fig. 2.4.11")`).
+
+### `r anch("Fig. 2.4.11")`<span class="red">Fig. 2.4.11</span> Percentage of people enrolled on treatment for drug-resistant TB who were actively and systematically monitored for adverse events, `r report_year-1`
+
+```{r fig_2.4.11, fig.alt="World map showing proportion of drug-resistant TB patients followed up for adverse events"}
+
+f2.4.11_plot <- f2.4.11_data |> 
+
+  whomapper(colours=brewer.pal(4, "Reds"),
+         legend_title = "Percentage (%)")
+
+output_ggplot(f2.4.11_plot, f2.4.11_data, show_static = T, pdf_csv_folder, save_csv, save_pdf)
+
+```
+
+<hr />
+<br />
+
+Further country-specific details about treatment for drug-resistant TB are available in the [Global tuberculosis report app](https://www.who.int/teams/global-tuberculosis-programme/data#app) and [country profiles](https://worldhealthorg.shinyapps.io/tb_profiles/).
+
+Data shown on this webpage are as of `r format(as.Date(snapshot_date), format="%d %B %Y")` (see <span class="red">Annex 2</span> of the core report document for more details).
+
+`r anch("refs")`
+
+<hr style="border:1px solid gray20">
+
+**References**
+
+1. WHO consolidated guidelines on tuberculosis. Module 4: treatment and care. Geneva: World Health Organization; 2025 (https://iris.who.int/handle/10665/380799). License: CC BY-NC-SA 3.0 IGO.
+
+2. Global Drug Facility (GDF) [website]. Geneva: Stop TB Partnership; 2026 (https://www.stoptb.org/buyers/plan-order).
+
+3. Consolidated guidance on tuberculosis data generation and use: module 1: tuberculosis surveillance. Geneva: World Health Organization; 2024  (https://iris.who.int/handle/10665/376612). License: CC BY-NC-SA 3.0 IGO.
+
+<hr style="border:1px solid gray20">
+
+**General disclaimers**
+<br>
+The designations employed and the presentation of the material in this publication do not imply the expression of any opinion whatsoever on the part of WHO concerning the legal status of any country, territory, city or area or of its authorities, or concerning the delimitation of its frontiers or boundaries. Dotted and dashed lines on maps represent approximate border lines for which there may not yet be full agreement.
+
+
+```{r js_functions}
+# Insert javascript file containing common Kendo number formatting functions ----
+cat(writeLines(readLines(here("report/resources/gtbr_js.htm"))))
+```
+
+<script type="text/javascript">
+/* JSON data objects for the figures */
+
+var fig_2_4_1_data = `r f2.4.1_data |> pivot_wider(names_from = age_group, values_from = how_many) |> rename(age_014=3, age_15plus=4) |> toJSON("rows")`   ;  
+
+var fig_2_4_1b_data = `r f2.4.1b_data |> toJSON("rows")`   ;  
+
+var fig_2_4_2_data = `r f2.4.2_data |> select(!rr_detected) |> toJSON("rows")`   ;  
+
+var fig_2_4_3_data = `r f2.4.3_data |> select(!rr_detected) |> toJSON("rows")`   ;  
+
+var fig_2_4_5_data = `r f2.4.5_data |> pivot_wider(names_from = outcome, values_from = value) |> arrange(rev(year)) |> rename(entity = 1, succ=3, fail=4, died=5, ltfu=6, neval=7) |> toJSON("rows")`   ;  
+
+var fig_2_4_6_data = `r f2.4.6_data |> pivot_wider(names_from = outcome, values_from = value) |> rename(succ=2, fail=3, died=4, ltfu=5, neval=6) |> toJSON("rows")`   ;  
+
+var fig_2_4_9_data = `r f2.4.9_data |> pivot_wider(names_from = regimen, values_from = pcnt) |> toJSON("rows")`   ;  
+
+var fig_2_4_10_data = `r f2.4.10_data |> pivot_wider(names_from = regimen, values_from = pcnt) |> toJSON("rows")`   ;  
+
+</script>
+
+
+
+```{js, echo=FALSE}
+
+/* Functions to create the figures */
+
+function createFig_2_4_1b(fig_ID, data, filter, color, year_step, max) {
+  
+  	// Filter the dataset on the country variable
+		dataJSON = data.filter( element => element.age_group == filter);
+  
+		$(fig_ID).kendoChart({
+			dataSource: dataJSON,
+			chartArea: {
+				height: 500
+			},	
+      title: {
+				text: filter,
+				color: "black",
+				font: "bold 14px  Arial,Helvetica,sans-serif",
+        align: "center"
+			},	
+			legend: {
+				position: "bottom"
+			},
+			seriesDefaults: {
+				type: "line"
+			},
+			series: [{
+				field: "how_many",
+				color: color,
+        tooltip: {
+				visible: true,
+				template: "#= category #: #= num_spacer(value) #"
+			}
+			}],
+			valueAxis: {
+				labels: {
+				template: "#= axis_spacer(value) #",
+				},
+				title: {
+					text: "Number per year"
+				},
+				line: {
+					visible: false
+				},	
+				min: 0,
+				max: max
+			},
+			categoryAxis: {
+				field: "year",
+				labels: {
+					rotation: 0,
+          step: year_step
+				},
+				majorGridLines: {
+					visible: false
+				},
+				title: {
+					text: "Year"
+				}
+			}
+
+		});
+}
+
+
+function tb_format_thou_amro(n) { 
+  nt = n/1000; 
+  ntform = Number(nt.toPrecision(2))*1000;
+  return num_spacer(ntform)
+}
+
+
+function createFig_2_4_2(fig_ID, data, filter, height) {
+   	
+  // Filter the dataset on the country variable
+		dataJSON = data.filter( element => element.entity == filter);
+   
+		$(fig_ID).kendoChart({
+			dataSource: dataJSON,
+			chartArea: {
+				height: height
+			},
+      title: {
+				text: filter,
+				color: "black",
+				font: "bold 14px  Arial,Helvetica,sans-serif",
+        align: "center"
+			},	
+			legend: {
+				position: "bottom"
+			},
+      series: [{
+				type: "line",
+				field: "e_inc_rr_num",
+				color: "#91A93E",
+        markers: {
+          size: 3
+        },
+				tooltip: {
+					visible: true,
+					format: "{0}",
+					template: "Estimates of the number of incident cases of RR-TB (#= category #): #= tb_format_thou_amro(value) #"
+				}
+			},{
+				type: "rangeArea",
+				fromField: "e_inc_rr_num_lo",
+				toField: "e_inc_rr_num_hi",
+				color: "#91A93E",
+				tooltip: {
+					visible: true,
+				format: "{0}",
+				template: "95% uncertainty interval (#= category #): #= tb_format_thou_amro(value.from) #\u2013#= tb_format_thou_amro(value.to) #"
+				}
+			},{
+				type: "line",
+				field: "rr_detected",
+				color: "#277abe",		
+        markers: {
+          size: 3
+        },
+				tooltip: {
+					visible: true,
+					format: "{0}",
+					template: "Number of people diagnosed with RR-TB (#= category #): #= kendo.toString(value, 'n0').replace(/,/g, ' ') #"
+				}
+			},{
+				type: "line",
+				field: "rr_treated",
+				color: "Red",		
+        markers: {
+          size: 3
+        },
+				tooltip: {
+					visible: true,
+					format: "{0}",
+					template: "Number enrolled on RR-TB treatment (#= category #): #= kendo.toString(value, 'n0').replace(/,/g, ' ') #"
+				}
+			},],
+			valueAxis: {
+				labels: {
+          template: "#= kendo.toString(value, 'n0').replace(/,/g, ' ') #"
+				},
+				title: {
+					text: "Number per year"
+				},
+				line: {
+					visible: false
+				}
+			},
+			categoryAxis: {
+				field: "year",
+				labels: {
+					rotation: 0,
+          step: 2
+				},
+				majorGridLines: {
+					visible: false
+				},
+				title: {
+					text: "Year"
+				}
+			}
+
+		});
+}
+
+
+function createFig_2_4_5(fig_ID, data, y_axis_title_text) {
+		$(fig_ID).kendoChart({
+			dataSource: data,
+			chartArea: {
+				height: 500
+			},	
+			legend: {
+				position: "bottom"
+			},
+			seriesDefaults: {
+				type: "bar",
+        stack: true,
+        gap: 0.2
+			},
+			series: [{
+        name: "Treatment success",
+				field: "succ",
+				color: "#009E73",
+        tooltip: {
+				visible: true,
+				template: "Treatment success (#= category #): #= value.toPrecision(2) #%"
+			}
+			},{
+        name: "Treatment failed",
+				field: "fail",
+				color: "#ED1D24",
+        tooltip: {
+				visible: true,
+				template: "Treatment failed (#= category #): #= value.toPrecision(2) #%"
+			}
+			},{
+        name: "Died",
+				field: "died",
+				color: "#F7941E",
+        tooltip: {
+				visible: true,
+				template: "Died (#= category #): #= value.toPrecision(2) #%"
+			}
+			},{
+        name: "Lost to follow-up",
+				field: "ltfu",
+				color: "#E5DDB3",
+        tooltip: {
+				visible: true,
+				template: "Lost to follow-up (#= category #): #= value.toPrecision(2) #%"
+			}
+			},{
+        name: "Not evaluated",
+				field: "neval",
+				color: "#D1D3D4",
+        tooltip: {
+				visible: true,
+				template: "Not evaluated (#= category #): #= value.toPrecision(2) #%"
+			}
+			},
+              ],
+			valueAxis: {
+
+				title: {
+					text: "Percentage of cohort"
+				},
+				line: {
+					visible: false
+				},
+				min: 0,
+        max: 100
+			},
+			categoryAxis: {
+				field: "entity",
+				title: {
+					text: y_axis_title_text
+				},
+				labels: {
+					rotation: "auto"
+				},
+				majorGridLines: {
+					visible: false
+				}			}
+		});
+}
+
+function createFig_2_4_9(fig_ID, data, height, filter) {
+  
+  		// Filter the dataset on the country variable
+		dataJSON = data.filter( element => element.entity == filter);
+  
+		$(fig_ID).kendoChart({
+			dataSource: dataJSON,
+			chartArea: {
+				height: height
+			},	
+      title: {
+				text: filter,
+				color: "black",
+				font: "bold 14px  Arial,Helvetica,sans-serif",
+        align: "center"
+			},	
+			legend: {
+				position: "bottom"
+			},
+			seriesDefaults: {
+				type: "line"
+			},
+			series: [{
+        name: "6-month regimens",
+				field: "dr_6m_tx",
+				color: "blueviolet",
+				markers: {
+          size: 3
+        },
+        tooltip: {
+				visible: true,
+				template: "6-month regimens (#= category #): #= num_spacer(Number(value.toPrecision(2))) #%"
+			}
+			},{
+        name: "9-month regimens",
+				field: "dr_9m_tx",
+				color: "#4975a8",
+				markers: {
+          size: 3
+        },
+        tooltip: {
+				visible: true,
+				template: "9-month regimens (#= category #): #= num_spacer(Number(value.toPrecision(2))) #%"
+			}
+			},{
+        name: "Longer regimens (18\u201320 months)",
+				field: "dr_18mplus_tx",
+				color: "#880e0e",
+				markers: {
+          size: 3
+        },
+        tooltip: {
+				visible: true,
+				template: "Longer regimens (18\u201320 months) (#= category #): #= num_spacer(Number(value.toPrecision(2))) #%"
+			}
+			},{
+        name: "Regimens unknown",
+				field: "dr_unk_tx",
+				color: "grey",        
+				dashType: "dash",
+
+				markers: {
+          size: 3
+        },
+        tooltip: {
+				visible: true,
+				template: "Regimens unknown (#= category #): #= num_spacer(Number(value.toPrecision(2))) #%"
+			}
+			},
+              ],
+
+			valueAxis: {
+				labels: {
+					format: "{0}"
+				},
+				title: {
+					text: "Percentage",
+          font: "14px Arial,Helvetica,sans-serif"
+				},
+				line: {
+					visible: false
+				},
+				max: 100,
+        min: 0
+			},
+			categoryAxis: {
+				field: "year",
+        labels: {
+					rotation: 0,
+          step: 2
+          },
+				majorGridLines: {
+					visible: false
+				},
+				title: {
+					text: "Year"
+				}
+			}
+
+		});
+}
+
+
+function createFig_2_4_10(fig_ID, data, height, filter) {
+  
+  		// Filter the dataset on the country variable
+		dataJSON = data.filter( element => element.country == filter);
+  
+		$(fig_ID).kendoChart({
+			dataSource: dataJSON,
+			chartArea: {
+				height: height
+			},	
+      title: {
+				text: filter,
+				color: "black",
+				font: "bold 14px  Arial,Helvetica,sans-serif",
+        align: "center"
+			},	
+			legend: {
+				position: "bottom"
+			},
+			seriesDefaults: {
+				type: "line"
+			},
+			series: [{
+        name: "6-month regimens",
+				field: "dr_6m_tx",
+				color: "blueviolet",
+				markers: {
+          size: 3
+        },
+        tooltip: {
+				visible: true,
+				template: "6-month regimens (#= category #): #= num_spacer(Number(value.toPrecision(2))) #%"
+			}
+			},{
+        name: "9-month regimens",
+				field: "dr_9m_tx",
+				color: "#4975a8",
+				markers: {
+          size: 3
+        },
+        tooltip: {
+				visible: true,
+				template: "9-month regimens (#= category #): #= num_spacer(Number(value.toPrecision(2))) #%"
+			}
+			},{
+        name: "Longer regimens (18\u201320 months)",
+				field: "dr_18mplus_tx",
+				color: "#880e0e",
+				markers: {
+          size: 3
+        },
+        tooltip: {
+				visible: true,
+				template: "Longer regimens (18\u201320 months) (#= category #): #= num_spacer(Number(value.toPrecision(2))) #%"
+			}
+			},{
+        name: "Regimens unknown",
+				field: "dr_unk_tx",
+				color: "grey",
+				dashType: "dash",
+
+				markers: {
+          size: 3
+        },
+        tooltip: {
+				visible: true,
+				template: "Regimens unknown (#= category #): #= num_spacer(Number(value.toPrecision(2))) #%"
+			}
+			},
+              ],
+
+			valueAxis: {
+				labels: {
+					format: "{0}"
+				},
+				title: {
+					text: "Percentage",
+          font: "14px Arial,Helvetica,sans-serif"
+				},
+				line: {
+					visible: false
+				},
+				max: 102,
+        min: 0
+			},
+			categoryAxis: {
+				field: "year",
+        labels: {
+					rotation: 0,
+          step: 2
+          },
+				majorGridLines: {
+					visible: false
+				},
+				title: {
+					text: "Year"
+				}
+			}
+
+		});
+}
+
+
+```
+
+```{js, echo=FALSE}
+
+/* Create the figures after the document has been loaded */
+
+$(document).ready(function() {
+                 createFig_2_4_1b("#fig_2_4_1_all",fig_2_4_1b_data,"All ages","#A5D727",3, 200000);   
+                 createFig_2_4_1b("#fig_2_4_1_adult",fig_2_4_1b_data,"People aged \u226515 years\nor age not reported","#009E73",2, 200000);   
+                 createFig_2_4_1b("#fig_2_4_1_children",fig_2_4_1b_data,"People aged 0\u201314 years","red",2, 6000);   
+
+    createFig_2_4_2("#fig_2_4_3_AGO",fig_2_4_3_data,"Angola",250);
+                 createFig_2_4_2("#fig_2_4_3_PRK",fig_2_4_3_data,"Democratic People's\nRepublic of Korea",250);
+                 createFig_2_4_2("#fig_2_4_3_KGZ",fig_2_4_3_data,"Kyrgyzstan",250);
+                 createFig_2_4_2("#fig_2_4_3_NGA",fig_2_4_3_data,"Nigeria",250);
+                 createFig_2_4_2("#fig_2_4_3_MDA",fig_2_4_3_data,"Republic of Moldova",250);
+                 createFig_2_4_2("#fig_2_4_3_UKR",fig_2_4_3_data,"Ukraine",250);
+                 createFig_2_4_2("#fig_2_4_3_AZE",fig_2_4_3_data,"Azerbaijan",250);
+                 createFig_2_4_2("#fig_2_4_3_COD",fig_2_4_3_data,"Democratic Republic\nof the Congo",250);
+                 createFig_2_4_2("#fig_2_4_3_MNG",fig_2_4_3_data,"Mongolia",250);
+                 createFig_2_4_2("#fig_2_4_3_PAK",fig_2_4_3_data,"Pakistan",250);
+                 createFig_2_4_2("#fig_2_4_3_RUS",fig_2_4_3_data,"Russian Federation",250);
+                 createFig_2_4_2("#fig_2_4_3_UZB",fig_2_4_3_data,"Uzbekistan",250);
+                 createFig_2_4_2("#fig_2_4_3_BGD",fig_2_4_3_data,"Bangladesh",250);
+                 createFig_2_4_2("#fig_2_4_3_IND",fig_2_4_3_data,"India",250);
+                 createFig_2_4_2("#fig_2_4_3_MOZ",fig_2_4_3_data,"Mozambique",250);
+                 createFig_2_4_2("#fig_2_4_3_PNG",fig_2_4_3_data,"Papua New Guinea",250);
+                 createFig_2_4_2("#fig_2_4_3_SOM",fig_2_4_3_data,"Somalia",250);
+                 createFig_2_4_2("#fig_2_4_3_VNM",fig_2_4_3_data,"Viet Nam",250);
+                 createFig_2_4_2("#fig_2_4_3_BLR",fig_2_4_3_data,"Belarus",250);
+                 createFig_2_4_2("#fig_2_4_3_IDN",fig_2_4_3_data,"Indonesia",250);
+                 createFig_2_4_2("#fig_2_4_3_MMR",fig_2_4_3_data,"Myanmar",250);
+                 createFig_2_4_2("#fig_2_4_3_PER",fig_2_4_3_data,"Peru",250);
+                 createFig_2_4_2("#fig_2_4_3_ZAF",fig_2_4_3_data,"South Africa",250);
+                 createFig_2_4_2("#fig_2_4_3_ZMB",fig_2_4_3_data,"Zambia",250);
+                 createFig_2_4_2("#fig_2_4_3_CHN",fig_2_4_3_data,"China",250);
+                 createFig_2_4_2("#fig_2_4_3_KAZ",fig_2_4_3_data,"Kazakhstan",250);
+                 createFig_2_4_2("#fig_2_4_3_NPL",fig_2_4_3_data,"Nepal",250);
+                 createFig_2_4_2("#fig_2_4_3_PHL",fig_2_4_3_data,"Philippines",250);
+                 createFig_2_4_2("#fig_2_4_3_TJK",fig_2_4_3_data,"Tajikistan",250);
+                 createFig_2_4_2("#fig_2_4_3_ZWE",fig_2_4_3_data,"Zimbabwe",250);
+
+                 createFig_2_4_2("#fig_2_4_3_AFG",fig_2_4_3_data,"Afghanistan",250);
+                 createFig_2_4_2("#fig_2_4_3_BRA",fig_2_4_3_data,"Brazil",250);
+                 createFig_2_4_2("#fig_2_4_3_GIN",fig_2_4_3_data,"Guinea",250);
+                 createFig_2_4_2("#fig_2_4_3_TKM",fig_2_4_3_data,"Turkmenistan",250);
+
+                 
+                 createFig_2_4_2("#fig_2_4_2_global",fig_2_4_2_data,"Global",400);
+                 createFig_2_4_2("#fig_2_4_2_euro",fig_2_4_2_data,"European Region",250);
+                 createFig_2_4_2("#fig_2_4_2_afro",fig_2_4_2_data,"African Region",250);
+                 createFig_2_4_2("#fig_2_4_2_emro",fig_2_4_2_data,"Eastern Mediterranean Region",250);
+                 createFig_2_4_2("#fig_2_4_2_amro",fig_2_4_2_data,"Region of the Americas",250);
+                 createFig_2_4_2("#fig_2_4_2_wpro",fig_2_4_2_data,"Western Pacific Region",250);
+                 createFig_2_4_2("#fig_2_4_2_searo",fig_2_4_2_data,"South-East Asia Region",250);
+                 
+
+                 createFig_2_4_5("#fig_2_4_5",fig_2_4_5_data,"Year started on treatment");
+                 createFig_2_4_5("#fig_2_4_6",fig_2_4_6_data,"");
+                 
+                 createFig_2_4_9("#fig_2_4_9_global",fig_2_4_9_data, 400, "Global");
+                 createFig_2_4_9("#fig_2_4_9_AFR",fig_2_4_9_data, 250, "African Region");
+                 createFig_2_4_9("#fig_2_4_9_AMR",fig_2_4_9_data, 250, "Region of the Americas");
+                 createFig_2_4_9("#fig_2_4_9_SEA",fig_2_4_9_data, 250, "South-East Asia Region");
+                 createFig_2_4_9("#fig_2_4_9_EUR",fig_2_4_9_data, 250, "European Region");
+                 createFig_2_4_9("#fig_2_4_9_EMR",fig_2_4_9_data, 250, "Eastern Mediterranean Region");
+                 createFig_2_4_9("#fig_2_4_9_WPR",fig_2_4_9_data, 250, "Western Pacific Region");
+
+                 createFig_2_4_10("#fig_2_4_10_AGO",fig_2_4_10_data, 250, "Angola");
+                 createFig_2_4_10("#fig_2_4_10_PRK",fig_2_4_10_data, 250, "Democratic People's\nRepublic of Korea");
+                 createFig_2_4_10("#fig_2_4_10_KGZ",fig_2_4_10_data, 250, "Kyrgyzstan");
+                 createFig_2_4_10("#fig_2_4_10_NGA",fig_2_4_10_data, 250, "Nigeria");
+                 createFig_2_4_10("#fig_2_4_10_MDA",fig_2_4_10_data, 250, "Republic of Moldova");
+                 createFig_2_4_10("#fig_2_4_10_UKR",fig_2_4_10_data, 250, "Ukraine");
+                 createFig_2_4_10("#fig_2_4_10_AZE",fig_2_4_10_data, 250, "Azerbaijan");
+                 createFig_2_4_10("#fig_2_4_10_COD",fig_2_4_10_data, 250, "Democratic Republic\nof the Congo");
+                 createFig_2_4_10("#fig_2_4_10_MNG",fig_2_4_10_data, 250, "Mongolia");
+                 createFig_2_4_10("#fig_2_4_10_PAK",fig_2_4_10_data, 250, "Pakistan");
+                 createFig_2_4_10("#fig_2_4_10_RUS",fig_2_4_10_data, 250, "Russian Federation");
+                 createFig_2_4_10("#fig_2_4_10_UZB",fig_2_4_10_data, 250, "Uzbekistan");
+                 createFig_2_4_10("#fig_2_4_10_BGD",fig_2_4_10_data, 250, "Bangladesh");
+                 createFig_2_4_10("#fig_2_4_10_IND",fig_2_4_10_data, 250, "India");
+                 createFig_2_4_10("#fig_2_4_10_MOZ",fig_2_4_10_data, 250, "Mozambique");
+                 createFig_2_4_10("#fig_2_4_10_PNG",fig_2_4_10_data, 250, "Papua New Guinea");
+                 createFig_2_4_10("#fig_2_4_10_SOM",fig_2_4_10_data, 250, "Somalia");
+                 createFig_2_4_10("#fig_2_4_10_VNM",fig_2_4_10_data, 250, "Viet Nam");
+                 createFig_2_4_10("#fig_2_4_10_BLR",fig_2_4_10_data, 250, "Belarus");
+                 createFig_2_4_10("#fig_2_4_10_IDN",fig_2_4_10_data, 250, "Indonesia");
+                 createFig_2_4_10("#fig_2_4_10_MMR",fig_2_4_10_data, 250, "Myanmar");
+                 createFig_2_4_10("#fig_2_4_10_PER",fig_2_4_10_data, 250, "Peru");
+                 createFig_2_4_10("#fig_2_4_10_ZAF",fig_2_4_10_data, 250, "South Africa");
+                 createFig_2_4_10("#fig_2_4_10_ZMB",fig_2_4_10_data, 250, "Zambia");
+                 createFig_2_4_10("#fig_2_4_10_CHN",fig_2_4_10_data, 250, "China");
+                 createFig_2_4_10("#fig_2_4_10_KAZ",fig_2_4_10_data, 250, "Kazakhstan");
+                 createFig_2_4_10("#fig_2_4_10_NPL",fig_2_4_10_data, 250, "Nepal");
+                 createFig_2_4_10("#fig_2_4_10_PHL",fig_2_4_10_data, 250, "Philippines");
+                 createFig_2_4_10("#fig_2_4_10_TJK",fig_2_4_10_data, 250, "Tajikistan");
+                 createFig_2_4_10("#fig_2_4_10_ZWE",fig_2_4_10_data, 250, "Zimbabwe");
+
+                 createFig_2_4_10("#fig_2_4_10_AFG",fig_2_4_10_data,250,"Afghanistan");
+                 createFig_2_4_10("#fig_2_4_10_BRA",fig_2_4_10_data,250,"Brazil");
+                 createFig_2_4_10("#fig_2_4_10_GIN",fig_2_4_10_data,250,"Guinea");
+                 createFig_2_4_10("#fig_2_4_10_TKM",fig_2_4_10_data,250,"Turkmenistan");
+
+
+});
+
+```
+

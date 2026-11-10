@@ -1,0 +1,3 @@
+Social protection expenditure as % of GDP is not included in ILOSTAT.
+Download and edit a csv file from the link below. (annex of social protection report)
+https://www.social-protection.org/gimi/WSPDB.action?id=54

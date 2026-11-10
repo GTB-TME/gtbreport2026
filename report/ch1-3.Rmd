@@ -1,0 +1,1014 @@
+---
+title: "Section 1.3 Drug resistance"
+author: "Mathieu Bastard"
+date: "`r Sys.Date()`"
+knit: (function(inputFile, encoding) {
+      out_dir <- "./local";
+      rmarkdown::render(inputFile,
+                        encoding=encoding,
+                        output_dir=file.path(dirname(inputFile), out_dir))})
+output: 
+  html_fragment:
+    # Don’t include a table of contents
+    toc: no
+    # Set standard figure width to 12 inches
+    fig_width: 12
+    # Don’t write figure captions
+    fig_caption: FALSE
+    # Don't embed external resources (stylesheets, JS libraries) in the output 
+    self_contained: FALSE
+    # Don't include <div> tags around a header and the content found until the next header
+    section_divs: FALSE  
+
+# To run this file and store output as html:
+#  rmarkdown::render(here::here("report/ch1-3.rmd"), output_file = "ch1-3.html", output_dir = here::here("report/local/"))   
+---
+ 
+```{r setup, include=FALSE}
+# Set chunk options.
+# Results "asis" is useful to output markdown from a function
+# Suppress messages, warnings and also the ## at the beginning of printed text
+
+knitr::opts_chunk$set(echo = FALSE, 
+                      results = "asis",
+                      message = FALSE,
+                      warning = FALSE,
+                      error = TRUE, # for debugging!
+                      
+                      # Settings for better output of whomapper .png maps
+                      fig.width = 10,
+                      fig.height = 5,
+                      dpi = 350
+                      )
+
+# Kill any attempt at using factors, unless we explicitly want them!
+options(stringsAsFactors=FALSE)
+
+
+# Set output options ----
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+# Show static chart in addition to Kendo chart?
+show_static = FALSE
+
+# Save underlying data files as CSV and charts as PDF files?
+pdf_csv_folder = here::here("report/local/figures/ch1-3")
+save_csv = TRUE
+save_pdf = TRUE
+save_hidef = FALSE # TRUE only for producing a high definition map for the PDF!
+
+# Create the output folder (only if it doesn't yet exist)
+dir.create(pdf_csv_folder, showWarnings = FALSE, recursive = TRUE)
+
+
+# Load output packages ----
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+library(ggplot2)
+library(dplyr)
+# devtools::install_github("yamanakatakuya/whomapR")
+# from https://github.com/yamanakatakuya/whomapR
+library(whomapR)
+library(gtbreport)
+library(here)
+library(jsonlite)
+library(RColorBrewer)
+
+
+# Load R functions ----
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+source(here("report/functions/html_links.R"))
+source(here("report/functions/output_ggplot.R"))
+
+# Round RR incidence estimates to 2 sig figs instead of 3
+ftb_rr <- function(x) {
+  
+  return(formatC(signif(x, 2), big.mark=" ", format="d"))
+}
+
+
+# Get the data sets and computed values/statistics for this chapter ----
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+source(here('report/ch1-3_prepare_data.r'))
+
+
+
+```
+
+```{r css_js}
+# Add standard stylesheets and javascript to support kendo
+cat(writeLines(readLines(here("report/resources/headers.htm"))))
+```
+
+
+# 1.3 Drug-resistant TB
+
+_Draft! Prepared `r Sys.Date()` using country-reported data snapshot files from `r snapshot_date` and estimates from `r estimates_date`_
+
+
+Since 1994, the World Health Organization (WHO) has systematically collected and analysed data on levels of resistance to anti-TB drugs from countries and areas (`r ref_lnk("1")`). For about 2 decades, most attention was given to the proportion of people diagnosed with TB who had rifampicin-resistant TB (RR-TB) and multidrug-resistant TB (MDR-TB, defined as resistance to both rifampicin and isoniazid). Following the availability of rapid tests that simultaneously test for TB and RR-TB (since 2010) and subsequent updates to WHO recommendations for the treatment of drug-resistant TB, the focus of global surveillance has been on the proportion of people diagnosed with TB who have RR-TB (for data sources and availability, see `r lnk("Box 1.3.1")`).
+
+Since 2022, new methods have been used to produce time series of estimates of the number of people developing RR-TB each year (incident cases), covering the period from 2015 up to the most recent complete calendar year (`r ref_lnk("2, 3")`). Data on resistance to other anti-TB drugs (fluoroquinolones, isoniazid, bedaquiline and linezolid) are collected as well, but the country coverage of such data is much more limited.
+
+
+Globally, the estimated annual number of people who developed RR-TB has been falling since 2015 (`r lnk("Fig. 1.3.1")`). The estimated number in `r report_year-1` was `r ftb_rr(f1.3_01_txt[2, "e_inc_rr_num"])` (95% uncertainty interval [UI]: `r ftb_rr(f1.3_01_txt[2, "e_inc_rr_num_lo"])`--`r ftb_rr(f1.3_01_txt[2, "e_inc_rr_num_hi"])`). 
+
+### `r anch("Fig. 1.3.1")`<span class="red">Fig. 1.3.1</span> Global trend in the estimated number of people who developed RR-TB (incident cases), 2015--`r report_year-1`
+<div class="subhead">The shaded area represents the 95% uncertainty interval.</div> 
+
+```{r fig_1.3.01, fig.alt="Line chart of RR-TB incidence estimates globally since 2015"}
+
+f1.3_01_plot <- f1.3_01_data |> 
+  
+  ggplot(aes(x=year, y=e_inc_rr_num, ymin=0)) +
+  
+  geom_line(size=1,
+            colour=gtbreport::palette_gtb("inch")) +
+  
+  geom_ribbon(aes(x=year, 
+                  ymin=e_inc_rr_num_lo, 
+                  ymax=e_inc_rr_num_hi),
+              fill=gtbreport::palette_gtb("inch"),
+              alpha=0.4) +
+
+  facet_wrap( ~ entity, ncol = 4, scales="free_y") +
+  
+  scale_x_continuous(name="Year",
+                     breaks = seq(2015, report_year-1, by=2) ) +
+
+  # display y-axis scale in thousands
+  scale_y_continuous(name = "Thousands per year", 
+                     # Use the remainder operator in the labeller function to make sure we don't get weird effects
+                     # when plotting small numbers
+                     labels = function(i){ifelse((i/1e3) %% 1 == 0, round(i/1e3), round(i/1e3, 1))}) +
+
+  theme_gtb()  +
+  
+  # Get rid of annoying x-axis line and ticks
+  theme(axis.line.x = ggplot2::element_blank(),
+        axis.ticks.x = element_blank())
+
+output_ggplot(f1.3_01_plot, f1.3_01_data, show_static, pdf_csv_folder, save_csv, save_pdf)
+
+```
+<div id="fig_1_3_1"></div>
+
+<hr />
+<br />
+
+Globally, an estimated `r ftb_rr(global.mort.rr["m"])` people (95% UI: `r ftb_rr(global.mort.rr["m.lo"])`--`r ftb_rr(global.mort.rr["m.hi"])`) died from RR-TB in `r report_year-1`.
+
+The reason why the number of people developing RR-TB is not estimated to have increased from 2020--2023, in contrast to the number of people developing TB overall (<span class="red">Section 1.1</span>), is that increases in the overall number of people developing TB have been offset by an estimated downward trend since 2015 in the proportion of people with TB who have RR-TB (`r lnk("Fig. 1.3.2")`). 
+
+Globally, the estimated proportion of new TB cases with RR-TB fell from `r ftb(f1.3_02_txt[1, "best"])`% (95% UI: `r ftb(f1.3_02_txt[1, "lo"])`--`r ftb(f1.3_02_txt[1, "hi"])`%) in 2015 to `r ftb(f1.3_02_txt[3, "best"])`% (95% UI: `r ftb(f1.3_02_txt[3, "lo"])`--`r ftb(f1.3_02_txt[3, "hi"])`%) in `r report_year-1`; the estimated proportion of previously treated cases with RR-TB fell from `r ftb(f1.3_02_txt[2, "best"])`% (95% UI: `r ftb(f1.3_02_txt[2, "lo"])`--`r ftb(f1.3_02_txt[2, "hi"])`%) in 2015 to `r ftb(f1.3_02_txt[4, "best"])`% (95% UI: `r ftb(f1.3_02_txt[4, "lo"])`--`r ftb(f1.3_02_txt[4, "hi"])`%) in `r report_year-1`.
+
+### `r anch("Fig. 1.3.2")`<span class="red">Fig. 1.3.2</span> Global trend in the estimated percentage of people with TB who had RR-TB, 2015--`r report_year-1`
+<div class="subhead">The shaded areas represent the 95% uncertainty interval.</div> 
+
+```{r fig_1.3.02, fig.alt="Panel plot of estimated RR-TB proportions among new and previously treated patients globally"}
+
+f1.3_02_plot <- f1.3_02_data |> 
+  
+  ggplot(aes(x=year, y=best, ymin=0)) +
+  
+  geom_line(size=1) +
+ 
+  geom_ribbon(aes(x=year, 
+                  ymin=lo, 
+                  ymax=hi),
+              fill=I('blue'),
+              alpha=0.4) +
+
+  scale_x_continuous(name="Year",
+                     breaks = seq(2015, report_year-1, by=2) ) +
+  
+  scale_y_continuous(name = "Percentage",
+                     labels = function(i){paste0(i, "%")}) +
+  
+  facet_wrap( ~ case_type, ncol = 2, scales="free_y") +
+  
+  theme_gtb()  +
+  
+  # Get rid of annoying x-axis line and ticks
+  theme(axis.line.x = ggplot2::element_blank(),
+        axis.ticks.x = element_blank())
+
+output_ggplot(f1.3_02_plot, f1.3_02_data, show_static, pdf_csv_folder, save_csv, save_pdf)
+
+
+```
+<div class="row">
+<div class="col-md-6">
+<div id="fig_1_3_2_new"></div>
+</div>
+<div class="col-md-6">
+<div id="fig_1_3_2_prev"></div>
+</div>
+</div>
+
+<hr />
+<br />
+
+Trends at regional level vary (`r lnk("Fig. 1.3.3")`). Between 2020 and 2025, there were estimated increases in the number of people who developed RR-TB in the WHO Region of the Americas and the WHO South-East Asia Region. In contrast, the estimated number of people developing RR-TB each year has been declining since 2015 in both the African and Eastern Mediterranean regions. Numbers are also estimated to have been falling for most of the period 2015–2025 in the European Region. After a persistent decline from 2015–2021 and a stable trend from 2021–2022, there was a year-on-year decline in the Western Pacific Region between 2023 and 2025.
+
+### `r anch("Fig. 1.3.3")`<span class="red">Fig. 1.3.3</span> Regional trends in the estimated number of people who developed  RR-TB (incident cases), 2015--`r report_year-1`
+<div class="subhead">The shaded area represents the 95% uncertainty interval. </div> 
+
+```{r fig_1.3.03, fig.alt="Panel plot of estimated number of incident cases of RR-TB by WHO region since 2015"}
+
+f1.3_03_plot <- f1.3_03_data |> 
+    
+  filter(entity!="Global") |>
+
+  ggplot(aes(x=year, y=e_inc_rr_num, ymin=0)) +
+  
+  geom_line(size=1,
+            colour=gtbreport::palette_gtb("inch")) +
+  
+  geom_ribbon(aes(x=year, 
+                  ymin=e_inc_rr_num_lo, 
+                  ymax=e_inc_rr_num_hi),
+              fill=gtbreport::palette_gtb("inch"),
+              alpha=0.4) +
+
+  facet_wrap( ~ entity, ncol = 3, scales="free_y") +
+  
+  scale_x_continuous(name="Year",
+                     breaks = seq(2015, report_year-1, by=2) ) +
+
+  # display y-axis scale in thousands
+  scale_y_continuous(name = "Thousands per year", 
+                     # Use the remainder operator in the labeller function to make sure we don't get weird effects
+                     # when plotting small numbers
+                     labels = function(i){ifelse((i/1e3) %% 1 == 0, round(i/1e3), round(i/1e3, 1))}) +
+
+  theme_gtb()  +
+  
+  # Get rid of annoying x-axis line and ticks
+  theme(axis.line.x = ggplot2::element_blank(),
+        axis.ticks.x = element_blank())
+  
+output_ggplot(f1.3_03_plot, f1.3_03_data, show_static, pdf_csv_folder, save_csv, save_pdf)
+
+```
+<div class="row">
+<div class="col-md-4">
+<div id="fig_1_3_3_AFR"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_1_3_3_AMR"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_1_3_3_SEAR"></div>
+</div>
+</div>
+
+<div class="row">
+<div class="col-md-4">
+<div id="fig_1_3_3_EUR"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_1_3_3_EMR"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_1_3_3_WPR"></div>
+</div>
+</div>
+
+<hr />
+<br />
+
+Trends in the 30 high RR-TB burden countries also vary (`r lnk("Fig. 1.3.4")`).
+
+### `r anch("Fig. 1.3.4")`<span class="red">Fig. 1.3.4</span> Trends in the estimated number of people who developed RR-TB (incident cases), 30 high RR-TB burden countries, 2015--`r report_year-1`^a^
+<div class="subhead">The shaded area represents the 95% uncertainty interval.</div> 
+
+```{r fig_1.3.04, fig.alt="Panel plot of RR-TB incidence estimates in the 30 MDR high burden countries since 2015", fig.height=20}
+
+f1.3_04_plot <- f1.3_04_data |> 
+    
+  ggplot(aes(x=year, y=e_inc_rr_num, ymin=0)) +
+  
+  geom_line(size=1,
+            colour=gtbreport::palette_gtb("inch")) +
+  
+  geom_ribbon(aes(x=year, 
+                  ymin=e_inc_rr_num_lo, 
+                  ymax=e_inc_rr_num_hi),
+              fill=gtbreport::palette_gtb("inch"),
+              alpha=0.4) +
+
+  facet_wrap( ~ country, 
+              ncol = 3, 
+              scales="free_y",
+              # Use the labeller function to make sure long country names are wrapped in panel headers
+              labeller = label_wrap_gen(width = 20)) +
+ 
+  
+  scale_x_continuous(name="Year",
+                     breaks = seq(2015, report_year-1, by=2) ) +
+
+  # display y-axis scale in thousands
+  scale_y_continuous(name = "Thousands per year", 
+                     # Use the remainder operator in the labeller function to make sure we don't get weird effects
+                     # when plotting small numbers
+                     labels = function(i){ifelse((i/1e3) %% 1 == 0, round(i/1e3), round(i/1e3, 1))}) +
+
+  theme_gtb()  +
+  
+  # Get rid of annoying x-axis line and ticks
+  theme(axis.line.x = ggplot2::element_blank(),
+        axis.ticks.x = element_blank())
+  
+output_ggplot(f1.3_04_plot, f1.3_04_data, show_static, pdf_csv_folder, save_csv, save_pdf, pdf_height = 12)
+
+```
+<div class="row">
+<div class="col-md-4">
+<div id="fig_1_3_4_AFG"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_1_3_4_AGO"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_1_3_4_AZE"></div>
+</div>
+</div>
+<div class="row">
+<div class="col-md-4">
+<div id="fig_1_3_4_BRA"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_1_3_4_CHN"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_1_3_4_PRK"></div>
+</div>
+</div>
+<div class="row">
+<div class="col-md-4">
+<div id="fig_1_3_4_COD"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_1_3_4_GIN"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_1_3_4_IND"></div>
+</div>
+</div>
+<div class="row">
+<div class="col-md-4">
+<div id="fig_1_3_4_IDN"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_1_3_4_KAZ"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_1_3_4_KGZ"></div>
+</div>
+</div>
+<div class="row">
+<div class="col-md-4">
+<div id="fig_1_3_4_MNG"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_1_3_4_MOZ"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_1_3_4_MMR"></div>
+</div>
+</div>
+<div class="row">
+<div class="col-md-4">
+<div id="fig_1_3_4_NPL"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_1_3_4_NGA"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_1_3_4_PAK"></div>
+</div>
+</div>
+<div class="row">
+<div class="col-md-4">
+<div id="fig_1_3_4_PNG"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_1_3_4_PER"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_1_3_4_PHL"></div>
+</div>
+</div>
+<div class="row">
+<div class="col-md-4">
+<div id="fig_1_3_4_RUS"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_1_3_4_SOM"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_1_3_4_ZAF"></div>
+</div>
+</div>
+<div class="row">
+<div class="col-md-4">
+<div id="fig_1_3_4_TJK"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_1_3_4_TKM"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_1_3_4_UKR"></div>
+</div>
+</div>
+<div class="row">
+<div class="col-md-4">
+<div id="fig_1_3_4_UZB"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_1_3_4_VNM"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_1_3_4_ZMB"></div>
+</div>
+</div>
+
+
+<div class="footnote"> ^a^ The best estimates for Brazil, Mozambique, Papua New Guinea and Peru are higher in 2025 compared with 2015. However, the change is not statistically significant. Estimates are not shown for the Democratic People’s Republic of Korea and India because they are under review. For India, see <span class="red">Annex 4</span> of the core report document.</div> 
+
+<hr />
+<br />
+
+
+The estimated number of people who developed RR-TB decreased substantially in the 4 countries that are part of the global RR-TB watchlist for 2026–2030 (`r lnk("Fig. 1.3.5")`).
+
+
+### `r anch("Fig. 1.3.5")`<span class="red">Fig. 1.3.5</span> Trends in the estimated number of people who developed RR-TB (incident cases), 4 global RR-TB watchlist countries, 2015--`r report_year-1`^a^
+<div class="subhead">The shaded area represents the 95% uncertainty interval.</div> 
+
+<div class="row">
+<div class="col-md-6">
+<div id="fig_1_3_4_BGD"></div>
+</div>
+<div class="col-md-6">
+<div id="fig_1_3_4_BLR"></div>
+</div>
+</div>
+
+<div class="row">
+<div class="col-md-6">
+<div id="fig_1_3_4_MDA"></div>
+</div>
+<div class="col-md-6">
+<div id="fig_1_3_4_ZWE"></div>
+</div>
+</div>
+
+<div class="footnote"> ^a^ WHO lists of high burden countries and global watchlists have been updated for the period 2026–2030 (<span class="red">Annex 3</span> of the core report document).</div> 
+
+
+
+<hr />
+<br />
+
+
+
+
+`r f1.3_05_top |> nrow() |> int2word() |> stringr::str_to_sentence()` countries accounted for over half of the global number of people estimated to have developed RR-TB (incident cases) in `r report_year-1`: `r f1.3_05_top[1,"country_in_text_EN"]` (`r ftb(f1.3_05_top [1,"pct"])`% of global cases), `r f1.3_05_top[2,"country_in_text_EN"]` (`r ftb(f1.3_05_top [2,"pct"])`%), `r f1.3_05_top[3,"country_in_text_EN"]` (`r ftb(f1.3_05_top[3,"pct"])`%) and `r f1.3_05_top[4,"country_in_text_EN"]` (`r ftb(f1.3_05_top[4,"pct"])`%) (`r lnk("Fig. 1.3.6")` and `r lnk("Fig. 1.3.7")`). 
+ 
+### `r anch("Fig. 1.3.6")`<span class="red">Fig. 1.3.6</span> Estimated number of people who developed RR-TB (incident cases) in `r report_year - 1`, for countries with at least 1000 incident cases
+
+
+```{r fig_1.3.6, fig.alt="Bubble map of countries with the highest numbers of RR-TB cases"}
+
+if (save_hidef == TRUE) {
+  # Generate a high definition map for the PDF
+  # Update fig numbering according to the masterlist of figs/tables
+  f8_data <- f1.3_05_data 
+  
+  f8_plot <- f8_data |>
+  
+  bubblemapper(legend_title = "",
+            legend_pos = "none",
+            bubble_col = "red",
+            scale_breaks = NULL,
+            scale_limits = NULL,
+            scale_labels = NULL,
+            water_col = "white",
+            hidef = save_hidef) 
+  
+  output_ggplot(f8_plot, f8_data, show_static, pdf_csv_folder, save_csv, save_pdf)
+  
+} else {
+  # Generate a standard map for the web page
+  
+  f1.3.6_plot <- f1.3_05_data |>
+  
+  bubblemapper(legend_title = "Number of cases",
+            legend_pos = c(0.14, 0.5),
+            bubble_col = "red",
+            scale_breaks = c(1e3, 1e4, 1e5),
+            scale_limits = c(1e3, 2e5),
+            scale_labels = c("1000","10 000","100 000"),
+            water_col = "white") +
+
+  add_annotate('text', label='China', x=151, y=36, size=2.5, include_coord = TRUE) +
+  add_annotate('segment',x=98, xend=145, y=36, yend=36, linewidth = 0.2) +
+
+  add_annotate(geom='text', label='Philippines', x=152, y=17, size=2.5) +
+  add_annotate('segment', x=125, xend=142, y=8, yend=17, linewidth = 0.2) +
+
+  # add_annotate(geom='text', label='Indonesia', x=107, y=-16, size=2.5) +
+  # add_annotate('segment', x=113, xend=105, y=0, yend=-14, linewidth = 0.2) +
+
+  add_annotate(geom='text', label='India', x=78, y=-6, size=2.5) +
+  add_annotate('segment', x=81, xend=78, y=22.5, yend=-3.5, linewidth = 0.2) +
+
+  add_annotate(geom='text', label='Russian Federation', x=122, y=67, size=2.5) +
+  add_annotate('segment', x=83, xend=97, y=56, yend=67, linewidth = 0.2)
+  # 
+  # 
+  output_ggplot(f1.3.6_plot, f1.3_05_data, show_static=TRUE, pdf_csv_folder, save_csv, save_pdf)
+
+}
+
+```
+
+
+
+
+
+### `r anch("Fig. 1.3.7")`<span class="red">Fig. 1.3.7</span> Geographic distribution of the estimated global number of incident RR-TB cases in `r report_year-1`
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, results = "asis", dev = 'png', fig_1.3.7, fig.alt="Geographic distribution of the estimated number of incident TB cases in 2025"} 
+
+
+library(treemapify)
+
+
+db_dr_country <- merge(db_dr_country, cty[,.(iso3,country,g_whoregion)],by="iso3")
+
+plot_data136 <- db_dr_country %>%
+  select(iso3,country,year,g_whoregion,e_inc_rr_num) %>%
+  subset(year==report_year-1) %>%
+  arrange(desc(e_inc_rr_num)) %>%
+  mutate(rank = row_number()) %>%
+  mutate(label_text = ifelse(rank <= 4, country, ""))
+
+custom_region_labels <- c(
+  "AFR" = "African Region",
+  "AMR" = "Region of the Americas",
+  "EMR" = "Eastern Mediterranean Region",
+  "EUR" = "European Region", 
+  "SEA" = "South-East Asia Region",
+  "WPR" = "Western Pacific Region"
+)
+
+f1.3.7_plot <- ggplot(plot_data136, aes(area = e_inc_rr_num, fill = g_whoregion, label = label_text)) +
+  # Draw the rectangles representing burden size
+  geom_treemap(show.legend = TRUE, color = "white", size = 0.5) +
+  # Add the text labels using our custom column
+  geom_treemap_text(
+    colour = "white", # White text contrasts well with colorful fills
+    place = "centre", # Center the labels
+    grow = FALSE,     # Set to TRUE if you want labels to fill the box size
+    reflow = TRUE     # Wrap long country names onto multiple lines
+  ) +
+  # Add titles and theme
+  labs(
+    fill = "WHO region"
+  ) +
+  theme_minimal() +
+  scale_fill_brewer(palette = "Set3",
+                    labels = custom_region_labels)
+
+output_ggplot(f1.3.7_plot, plot_data136, show_static=TRUE, pdf_csv_folder, save_csv, save_pdf)
+
+```
+
+
+
+<hr />
+<br />
+
+The proportion of people with TB who had RR-TB varies considerably among regions and countries (`r lnk("Fig. 1.3.8")`, `r lnk("Fig. 1.3.9")`). For people with no previous history of TB treatment (new cases), best estimates were 2.0% in the WHO African and Eastern Mediterranean regions, 3.1% in the Western Pacific Region, 3.5% in the Region of the Americas and 3.6% in the South-East Asia Region. In contrast, this proportion was `r ftb(f1.3_07_txt[1, "e_rr_prop_new"]*100)`% in the `r f1.3_07_txt[1, "entity"]`. For people previously treated for TB, best estimates ranged from `r ftb(f1.3_08_txt[6, "e_rr_prop_ret"]*100)`% in the `r f1.3_08_txt[6, "entity"]` to `r ftb(f1.3_08_txt[1, "e_rr_prop_ret"]*100)`% in the `r f1.3_08_txt[1, "entity"]`. At country level, the highest proportions are found in the Russian Federation and in several countries in Eastern Europe and Central Asia.  
+
+
+
+### `r anch("Fig. 1.3.8")`<span class="red">Fig. 1.3.8</span> Percentage of people with TB who had RR-TB, for those with no previous history of TB treatment, `r report_year - 1`
+
+```{r fig_1.3.8, fig.alt="Map showing percentage of new TB cases with RR-TB"}
+
+f1.3.8_plot <- f1.3_07_data |> 
+  whomapper(colours=c('#F5EB8C','#FCB56B','#F05552','#F71111','#800F0B'), 
+         na_col='#FFFFFF', 
+         legend_title = "Percentage (%)", 
+         water_col = "white") 
+
+output_ggplot(f1.3.8_plot, f1.3_07_data, show_static=TRUE, pdf_csv_folder, save_csv, save_pdf)
+
+```
+
+### `r anch("Fig. 1.3.9")`<span class="red">Fig. 1.3.9</span> Percentage of people with TB who had RR-TB, for those previously treated for TB, `r report_year - 1`
+
+```{r fig_1.3.9, fig.alt="Map showing percentage of previously treated TB cases with RR-TB"}
+
+f1.3.9_plot <- f1.3_08_data |> 
+  whomapper(colours=c('#eff3ff','#bdd7e7','#6baed6','#3182bd','#08519c'), 
+         na_col='#FFFFFF', 
+         legend_title = "Percentage (%)", 
+         water_col = "white") 
+
+output_ggplot(f1.3.9_plot, f1.3_08_data, show_static=TRUE, pdf_csv_folder, save_csv, save_pdf)
+
+
+```
+
+<hr />
+<br />
+
+
+## Other patterns of drug resistance 
+
+There were an estimated `r ftb(HR_global$inc.H/1e6)` million incident cases (95% UI: `r ftb(HR_global$inc.H.lo/1e6)`--`r ftb(HR_global$inc.H.hi/1e6)` million) of isoniazid-resistant TB in `r report_year - 1`, including people with both rifampicin-susceptible TB and RR-TB. 
+
+Globally in `r report_year-1`, the estimated proportion of RR-TB cases with pre-extensively drug-resistant TB (pre-XDR-TB, defined as resistance to rifampicin and any fluoroquinolone) was `r ftb(FQR_in_RR_global$FQR.mid)`% (95% UI: `r ftb(FQR_in_RR_global$FQR.lo)`--`r ftb(FQR_in_RR_global$FQR.hi)`%). 
+
+
+`r anch("Box 1.3.1")`
+
+<div class="textbox">
+
+## Box 1.3.1: Anti-TB drug resistance: data sources and availability 
+
+There are two main sources of data about levels of anti-TB drug resistance: national surveys and continuous surveillance (i.e. routine diagnostic testing for drug resistance among people diagnosed with bacteriologically confirmed TB) (`r ref_lnk("4")`). 
+
+By the end of `r report_year-1`, `r f1.3_09_txt[f1.3_09_txt$var == "Surveillance", "countries"]` countries and areas had representative data about levels of resistance to rifampicin from continuous  surveillance systems, `r f1.3_09_txt[f1.3_09_txt$var == "Survey", "countries"]` had nationally representative survey data dating from 2000 or later and `r f1.3_09_txt[f1.3_09_txt$var == "Survey & Surveillance", "countries"]` had data from both continuous surveillance and surveys (`r lnk("Fig. 1.3.10")`). This total of `r length(sourcerr.lst)` countries and areas worldwide collectively accounted for `r ftb(pop_drs_pct)`% of the world’s population and `r ftb(inc_drs_pct)`% of incident cases of TB in `r report_year-1`. 
+
+Of the `r nrow(hbtb_hbmdr)` countries that are in one or both lists of high TB burden and high RR-TB burden countries being used by WHO in the period 2026--2030, `r inner_join(f1.3_09_data, hbtb_hbmdr,by="iso3") |> nrow()` had survey or surveillance data on levels of drug resistance.
+
+
+### `r anch("Fig. 1.3.10")`<span class="red">Fig. 1.3.10</span> Sources of data for rifampicin resistance among people diagnosed with TB, for those with no previous history of TB treatment, 2000--`r report_year-1`
+
+```{r fig_1.3.10, fig.alt="Map showing Source of data for rifampicin resistance among new cases"}
+
+f1.3.10_plot <- f1.3_09_data |> 
+  whomapper(colours=brewer.pal(3, "YlGn"), 
+         na_col='#FFFFFF', 
+         water_col = "white") 
+
+output_ggplot(f1.3.10_plot, f1.3_09_data, show_static=TRUE, pdf_csv_folder, save_csv, save_pdf)
+
+
+```
+
+</div>
+
+
+`r anch("refs")`
+
+<hr style="border:1px solid gray20">
+
+**References**
+
+1. Dean AS, Tosas Auguet O, Glaziou P, Zignol M, Ismail N, Kasaeva T _et al_ (2022). 25 years of surveillance of drug-resistant tuberculosis: achievements, challenges, and way forward. Lancet Infect Dis 22(7):E191-E196 (https://doi.org/10.1016/S1473-3099(21)00808-2).
+
+2. WHO Global Task Force on TB Impact Measurement: report of a subgroup meeting on methods used by WHO to estimate TB disease burden, 11–12 May 2022, Geneva, Switzerland. Geneva: World Health Organization; 2022 (https://iris.who.int/handle/10665/363428).
+
+3. Background document 2. Methods for estimating the incidence of drug-resistant TB. In: WHO/Global Task Force on TB Impact Measurement [website]. Geneva: World Health Organization; 2022 (https://cdn.who.int/media/docs/default-source/hq-tuberculosis/global-task-force-on-tb-impact-measurement/meetings/2022-05/tf-2022-05-2-background--document-2--dr-tb.pdf?sfvrsn=a8757cfa_3).
+
+4. Guidance for the surveillance of drug resistance in tuberculosis: Sixth edition. Geneva: World Health Organization; 2020 (https://iris.who.int/handle/10665/339760). Licence: CC BY-NC-SA 3.0 IGO.
+
+
+<hr style="border:1px solid gray20">
+
+**General disclaimers**
+<br>
+The designations employed and the presentation of the material in this publication do not imply the expression of any opinion whatsoever on the part of WHO concerning the legal status of any country, territory, city or area or of its authorities, or concerning the delimitation of its frontiers or boundaries. Dotted and dashed lines on maps represent approximate border lines for which there may not yet be full agreement.
+
+
+```{r js_functions}
+# Insert javascript file containing common Kendo number formatting functions ----
+cat(writeLines(readLines(here("report/resources/gtbr_js.htm"))))
+```
+
+```{r}
+f1.3_04_data[country == "India", c("e_inc_rr_num", "e_inc_rr_num_lo", "e_inc_rr_num_hi") := NA]
+
+```
+
+
+<script type="text/javascript">
+
+/* JSON data objects for the figures */
+
+var fig_1_3_1_data = `r f1.3_01_data |> toJSON("rows")`; 
+var fig_1_3_2_data = `r f1.3_02_data |> toJSON("rows")`; 
+var fig_1_3_3_data = `r f1.3_03_data |> toJSON("rows")`; 
+var fig_1_3_4_data = `r f1.3_04_data |> rename(entity=country) |> toJSON("rows")`;
+var fig_1_3_watch_data = `r f1.3_watch_data |> rename(entity=country) |> toJSON("rows")`;
+
+
+
+</script>
+
+
+```{js, echo=FALSE}
+
+function tb_format_thou_2(n) { 
+  //return thousands formatted to to significant figures
+  nt = n/1000; 
+  return num_spacer(Number(nt.toPrecision(2))*1000)
+}
+
+
+/* Functions to create the figures */
+
+function createfig_1_3_1(fig_ID, data, filter, height) {
+ 
+  	// Filter the dataset on the country variable
+		dataJSON = data.filter( element => element.entity == filter);
+  
+		$(fig_ID).kendoChart({		
+      dataSource: dataJSON,			
+			chartArea: {
+				height: height
+			},	      
+
+			legend: {
+				position: "bottom"
+			},
+      series: [{
+				type: "line",
+				field: "e_inc_rr_num",
+				color: "#ED1D24",
+        markers: { size: 4},
+				tooltip: {
+					visible: true,
+					template: "Estimated number of incident cases of RR-TB (#= category #): #= tb_format_thou_2(value) #"
+				}
+			},{
+				type: "rangeArea",
+				fromField: "e_inc_rr_num_lo",
+				toField: "e_inc_rr_num_hi",
+				color: "#ED1D24",
+				tooltip: {
+					visible: true,
+				format: "{0}",
+				template: "95% uncertainty interval (#= category #): #= tb_format_thou_2(value.from) #\u2013#= tb_format_thou_2(value.to) #"
+				}
+			},],      
+      
+			valueAxis: {
+        labels: {
+					template: "#= value/1e3 #"
+				},
+				title: {
+					text: "Thousands per year",
+					visible: true
+				},
+       min: 0,
+				line: {
+					visible: false
+				}
+			},      
+
+			categoryAxis: {
+				field: "year",
+				labels: {
+					rotation: "auto",
+					step: 2
+				},
+				majorGridLines: {
+					visible: false
+				},
+
+				title: {
+					text: "Year",
+					visible: true
+				}
+			}
+
+		});
+}
+
+
+
+function createfig_1_3_2(fig_ID, data, filter, maxvalue) {
+ 
+  	// Filter the dataset on the country variable
+		dataJSON = data.filter( element => element.case_type == filter);
+  
+		$(fig_ID).kendoChart({		
+      dataSource: dataJSON,			
+			chartArea: {
+				height: 400
+			},	      
+      title: {
+				text: filter,
+				color: "black",
+				font: "bold 14px  Arial,Helvetica,sans-serif",
+        align: "center"
+			},	  
+
+			legend: {
+				position: "bottom"
+			},
+      series: [{
+				type: "line",
+				field: "best",
+				color: "blue",
+        markers: { size: 4},
+				tooltip: {
+					visible: true,
+					template: "Percentage (#= category #): #= num_spacer(value) #%"
+				}
+			},{
+				type: "rangeArea",
+				fromField: "lo",
+				toField: "hi",
+				color: "blue",
+				tooltip: {
+					visible: true,
+				template: "95% uncertainty interval (#= category #): #= num_spacer(value.from) #–#= num_spacer(value.to)  #%"
+				}
+			},],      
+      
+			valueAxis: {
+        labels: {
+					format: "{0}%"
+				},
+				title: {
+					text: "Percentage",
+					visible: true
+				},
+				min: 0,
+				max: maxvalue,
+				line: {
+					visible: false
+				}
+			},      
+
+			categoryAxis: {
+				field: "year",
+				labels: {
+					rotation: "auto",
+					step: 2
+				},
+				majorGridLines: {
+					visible: false
+				},
+
+				title: {
+					text: "Year",
+					visible: true
+				}
+			}
+
+		});
+}
+
+function createfig_1_3_3(fig_ID, data, filter, height) {
+ 
+  	// Filter the dataset on the country variable
+		dataJSON = data.filter( element => element.entity == filter);
+  
+		$(fig_ID).kendoChart({		
+      dataSource: dataJSON,			
+			chartArea: {
+				height: height
+			},	      
+      title: {
+				text: filter,
+				color: "black",
+				font: "bold 14px  Arial,Helvetica,sans-serif",
+        align: "center"
+			},	  
+
+			legend: {
+				position: "bottom"
+			},
+      series: [{
+				type: "line",
+				field: "e_inc_rr_num",
+				color: "#ED1D24",
+        markers: { size: 4},
+				tooltip: {
+					visible: true,
+					template: "Estimated number of incident cases of RR-TB (#= category #): #= tb_format_thou_2(value) #"
+				}
+			},{
+				type: "rangeArea",
+				fromField: "e_inc_rr_num_lo",
+				toField: "e_inc_rr_num_hi",
+				color: "#ED1D24",
+				tooltip: {
+					visible: true,
+				format: "{0}",
+				template: "95% uncertainty interval (#= category #): #= tb_format_thou_2(value.from) #\u2013#= tb_format_thou_2(value.to) #"
+				}
+			},],      
+      
+			valueAxis: {
+        labels: {
+					template: "#= axis_spacer(value) #"
+				},
+				title: {
+					text: "Number per year",
+					visible: true
+				},
+       min: 0,
+				line: {
+					visible: false
+				}
+			},      
+
+			categoryAxis: {
+				field: "year",
+				labels: {
+					rotation: "auto",
+					step: 2
+				},
+				majorGridLines: {
+					visible: false
+				},
+
+				title: {
+					text: "Year",
+					visible: true
+				}
+			}
+
+		});
+}
+
+
+```
+
+
+```{js, echo=FALSE}
+
+/* Create the figures after the document has been loaded */
+
+$(document).ready(function () {
+                 createfig_1_3_1("#fig_1_3_1",fig_1_3_1_data,"Global",400);
+                 
+                 createfig_1_3_2("#fig_1_3_2_new",fig_1_3_2_data,"People with no previous history of TB treatment", 10);
+                 createfig_1_3_2("#fig_1_3_2_prev",fig_1_3_2_data,"People previously treated for TB", 40);
+
+                 
+                 createfig_1_3_3("#fig_1_3_3_EUR",fig_1_3_3_data,"European Region",250);
+                 createfig_1_3_3("#fig_1_3_3_AFR",fig_1_3_3_data,"African Region",250);
+                  createfig_1_3_3("#fig_1_3_3_EMR",fig_1_3_3_data,"Eastern Mediterranean Region",250);
+                  createfig_1_3_3("#fig_1_3_3_AMR",fig_1_3_3_data,"Region of the Americas",250);
+                  createfig_1_3_3("#fig_1_3_3_WPR",fig_1_3_3_data,"Western Pacific Region",250);
+                  createfig_1_3_3("#fig_1_3_3_SEAR",fig_1_3_3_data,"South-East Asia Region",250);
+
+                createfig_1_3_3("#fig_1_3_4_AFG",fig_1_3_4_data,"Afghanistan",250);
+                createfig_1_3_3("#fig_1_3_4_AGO",fig_1_3_4_data,"Angola",250);
+
+                 createfig_1_3_3("#fig_1_3_4_PRK",fig_1_3_4_data,"Democratic People's\nRepublic of Korea",250);
+                 createfig_1_3_3("#fig_1_3_4_KGZ",fig_1_3_4_data,"Kyrgyzstan",250);
+                 createfig_1_3_3("#fig_1_3_4_NGA",fig_1_3_4_data,"Nigeria",250);
+                 createfig_1_3_3("#fig_1_3_4_TKM",fig_1_3_4_data,"Turkmenistan",250);
+                 createfig_1_3_3("#fig_1_3_4_UKR",fig_1_3_4_data,"Ukraine",250);
+                 
+                 createfig_1_3_3("#fig_1_3_4_AZE",fig_1_3_4_data,"Azerbaijan",250);
+                 createfig_1_3_3("#fig_1_3_4_COD",fig_1_3_4_data,"Democratic Republic\nof the Congo",250);
+                 createfig_1_3_3("#fig_1_3_4_MNG",fig_1_3_4_data,"Mongolia",250);
+                 createfig_1_3_3("#fig_1_3_4_PAK",fig_1_3_4_data,"Pakistan",250);
+                 createfig_1_3_3("#fig_1_3_4_RUS",fig_1_3_4_data,"Russian Federation",250);
+                 createfig_1_3_3("#fig_1_3_4_UZB",fig_1_3_4_data,"Uzbekistan",250);
+                 
+                 createfig_1_3_3("#fig_1_3_4_IND",fig_1_3_4_data,"India",250);
+                 createfig_1_3_3("#fig_1_3_4_MOZ",fig_1_3_4_data,"Mozambique",250);
+                 createfig_1_3_3("#fig_1_3_4_PNG",fig_1_3_4_data,"Papua New Guinea",250);
+                 createfig_1_3_3("#fig_1_3_4_SOM",fig_1_3_4_data,"Somalia",250);
+                 createfig_1_3_3("#fig_1_3_4_VNM",fig_1_3_4_data,"Viet Nam",250);
+                 
+                 createfig_1_3_3("#fig_1_3_4_BRA",fig_1_3_4_data,"Brazil",250);
+                 createfig_1_3_3("#fig_1_3_4_IDN",fig_1_3_4_data,"Indonesia",250);
+                 createfig_1_3_3("#fig_1_3_4_MMR",fig_1_3_4_data,"Myanmar",250);
+                 createfig_1_3_3("#fig_1_3_4_PER",fig_1_3_4_data,"Peru",250);
+                 createfig_1_3_3("#fig_1_3_4_ZAF",fig_1_3_4_data,"South Africa",250);
+                 createfig_1_3_3("#fig_1_3_4_ZMB",fig_1_3_4_data,"Zambia",250);
+                 
+                 createfig_1_3_3("#fig_1_3_4_CHN",fig_1_3_4_data,"China",250);
+                 createfig_1_3_3("#fig_1_3_4_KAZ",fig_1_3_4_data,"Kazakhstan",250);
+                 createfig_1_3_3("#fig_1_3_4_NPL",fig_1_3_4_data,"Nepal",250);
+                 createfig_1_3_3("#fig_1_3_4_PHL",fig_1_3_4_data,"Philippines",250);
+                 createfig_1_3_3("#fig_1_3_4_TJK",fig_1_3_4_data,"Tajikistan",250);
+                 createfig_1_3_3("#fig_1_3_4_GIN",fig_1_3_4_data,"Guinea",250);
+                 
+                 createfig_1_3_3("#fig_1_3_4_BLR",fig_1_3_watch_data,"Belarus",250);
+                 createfig_1_3_3("#fig_1_3_4_MDA",fig_1_3_watch_data,"Republic of Moldova",250);
+                 createfig_1_3_3("#fig_1_3_4_BGD",fig_1_3_watch_data,"Bangladesh",250);
+                 createfig_1_3_3("#fig_1_3_4_ZWE",fig_1_3_watch_data,"Zimbabwe",250);
+
+});  
+
+```
+
+

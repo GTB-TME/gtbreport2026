@@ -1,0 +1,116 @@
+## calculating for DR report
+rm(list = ls())
+library(here)
+library(glue)
+library(data.table)
+
+## utilities
+source(here("drtb/R/utils/ftb.R"))
+source(here("import/load_gtb.R"))
+gh <- function(x) glue(here(x))
+ssum <- function(x, ...) sqrt(sum(x^2, ...)) # sqrt sum sqrs
+brkt <- function(x, y) {
+  paste0(
+    ftb(x), " (",
+    ftb(pmax(0, x - 1.96 * y)), " - ",
+    ftb(x + 1.96 * y), ")"
+  )
+}
+
+
+## load data
+noests.yet <- FALSE
+if (noests.yet) {
+  load(here("drtb/tmpdata/global.rda"))
+  ## load(here('drtb/tmpdata/dr.est.rda'))
+} else {
+  global <- load_gtb(
+    "global",
+    convert_dashes = TRUE, convert_data.table = TRUE
+  )
+}
+load(here("drtb/output/db_dr_group.rda"))
+
+## NOTE
+estyr <- global[, max(year)]
+
+## MDR mortality: re-written not to use propagate package
+##
+M2m <- function(M,
+                M.sd,
+                p,
+                p.sd,
+                r = 2.26,
+                r.sd = 0.45) {
+  ##' m = Mpr
+  ##' @param m = MDR-TB mortality, the unknown factor
+  ##' @param M = total (HIV- and HIV+) TB mortality
+  ##' @param p = overall proportion RR among prevalent TB, combined (among new and retreated) estimate
+  ##' @param r = RR or risk of dying from MDR compared to non-MDR TB (proxy for RR deaths),
+  ##'     approximated with the OR from meta-analysis 2.26 (1.54-3.33), SE=0.45
+  Q <- M * p * r / (1 - p + p * r)
+  dQ <- c(
+    p * r / (1 - p + p * r), # dQ/dM
+    M * r / (1 - p + p * r)^2, # dQ/dp
+    M * p * (1 - p) / (1 - p + p * r)^2 # dQ/dr
+  )
+  ## check
+  ## v <- c('M','p','r')
+  ## calculus::derivative(expression(M * p * r / (1 - p + p * r)),v)
+  ## calculus::hessian(expression(M * p * r / (1 - p + p * r)),v)[3,]
+  H <- c(
+    0, r / (1 - p + p * r) - p * r * (r - 1) / (1 - p + p * r)^2, p / (1 - p + p * r) - p * r * p / (1 - p + p * r)^2,
+    r / (1 - p + p * r) - p * r * (r - 1) / (1 - p + p * r)^2, -(M * r * (r - 1) / (1 - p + p * r)^2 + (M * r * (r - 1) / (1 - p + p * r)^2 - M * p * r * (r - 1) * (2 * ((r - 1) * (1 - p + p * r))) / ((1 - p + p * r)^2)^2)), M / (1 - p + p * r) - M * r * p / (1 - p + p * r)^2 - ((M * p * (r - 1) + M * p * r) / (1 - p + p * r)^2 - M * p * r * (r - 1) * (2 * (p * (1 - p + p * r))) / ((1 - p + p * r)^2)^2),
+    p / (1 - p + p * r) - p * r * p / (1 - p + p * r)^2, M / (1 - p + p * r) - M * p * (r - 1) / (1 - p + p * r)^2 - ((M * r * p + M * p * r) / (1 - p + p * r)^2 - M * p * r * p * (2 * ((r - 1) * (1 - p + p * r))) / ((1 - p + p * r)^2)^2), -(M * p * p / (1 - p + p * r)^2 + (M * p * p / (1 - p + p * r)^2 - M * p * r * p * (2 * (p * (1 - p + p * r))) / ((1 - p + p * r)^2)^2))
+  )
+  H <- matrix(H, nrow = 3, ncol = 3)
+  H2 <- H^2
+  v.sd <- c(M.sd, p.sd, r.sd)
+  V <- v.sd^2
+  Q.V <- sum(dQ^2 * v.sd^2) + 0.5 * t(V) %*% H2 %*% V + 0.25 * sum((diag(H) * V)^2)
+  Q.sd <- c(sqrt(Q.V))
+  out <- c(Q, Q.sd, Q - 1.96 * Q.sd, Q + 1.96 * Q.sd)
+  names(out) <- c("m", "m.sd", "m.lo", "m.hi")
+  return(out)
+}
+
+
+
+## ===  apply
+
+## RR proportions
+rrglob <- db_dr_group[group_name == "global" & year == estyr]
+rrglob[, inc.rr := e_inc_rr_num]
+rrglob[, inc.rr.sd := (e_inc_rr_num_hi - e_inc_rr_num_lo) / 3.96]
+rrglob[, prop.rr := inc.rr / inc]
+rrglob[, prop.rr.sd := prop.rr *
+  sqrt((inc.rr.sd / inc.rr)^2 + (inc.sd / inc)^2)]
+rrglob[, .(prop.rr, prop.rr.sd)]
+
+(global.mort.rrF <- M2m(
+  last(global$mort), # total mortality
+  last(global$mort.sd), # SD in total mortality
+  p = 0.05804381, # same as 2017 - 2021
+  p.sd = 0.004730819
+) * last(global$pop) / 1e5)
+
+
+
+(out <- brkt(global.mort.rrF["m"], global.mort.rrF["m.sd"]))
+
+## NOTE comparisons
+## 2021: 191 000 (119 000 - 264 000)
+## 2020: 182 000 (113 000 – 250 000)
+## 2022: 181 000 (112 000 - 249 000)
+## new version: 159 000 (97 700 - 221 000)
+## 2024 for 2023: 153 000 (94 100 - 213 000)
+## 2025 for 2024: 152 000 (93 900 - 211 000); R2 150 000 (92 700 - 208 000)
+## 2026 for 2025: 146 000 (89 800 - 202 000), R2 143 000 (87 800 - 197 000)
+
+cat(out, file = here("drtb/output/rr_global_mort_est.txt"))
+
+
+global.mort.rr <- global.mort.rrF
+attr(global.mort.rr, "timestamp") <- Sys.Date() # set date
+save(global.mort.rr, file = here("drtb/output/global.mort.rr.rda"))
+

@@ -1,0 +1,557 @@
+---
+title: "Featured topic: International donor funding for tuberculosis: an analysis of donor reports to the Organisation for Economic Co-operation and Development"
+author: "Takuya Yamanaka"
+date: "`r Sys.Date()`"
+knit: (function(inputFile, encoding) {
+      out_dir <- "./local";
+      rmarkdown::render(inputFile,
+                        encoding=encoding,
+                        output_dir=file.path(dirname(inputFile), out_dir))}) # added this to define a location for saving outputs
+output: 
+  html_fragment:
+    # Do not include a table of contents
+    toc: no
+    # Set standard figure width to 12 inches
+    fig_width: 12
+    # Do not write figure captions
+    fig_caption: FALSE
+    # to save intermediate .png
+    keep_md: FALSE
+    # Don't embed external resources (stylesheets, JS libraries) in the output 
+    self_contained: False    
+    # Don't include <div> tags around a header and the content found until the next header
+    section_divs: FALSE  
+    
+---
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+
+# Set chunk options.
+# Results "asis" is useful to output markdown from a function
+# Suppress messages, warnings and also the ## at the beginning of printed text
+knitr::opts_chunk$set(echo = FALSE, 
+                      results = "asis",
+                      message = FALSE,
+                      warning = FALSE)
+# Set output folder -- can only do this if not using the 
+# RStudio knit button and instead doing the following from the 
+# command line:
+# rmarkdown::render("ch5_txt.rmd", output_file = "ch5.html")
+# Establish the report year ----
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+report_year <- 2026
+# And the latest year for which OECD data are being displayed in graphics. Always two years older than report year
+latest_year <- report_year - 2
+# Kill any attempt at using factors, unless we explicitly want them!
+options(stringsAsFactors=FALSE)
+
+# Load R functions ----
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+source(here::here("report/functions/html_links.R"))
+source(here::here("report/functions/output_ggplot.R"))
+
+# Set up the running environment ----
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#source("io/set_environment.r")  # particular to each person so this file is in the ignore list
+# Load packages ----
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+library(ggplot2)
+library(stringr)
+library(dplyr)
+library(tidyr)
+library(RColorBrewer)
+library(gridExtra)
+library(gtbreport) 
+library(jsonlite)
+library(here)
+
+library(treemapify) 
+library(pals)
+
+# Load donor data from OECD - summary objects only ----
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Country info
+source(here::here('report/ch4-2_prepare_data.R'))
+# country_info <- haven::read_dta(here::here(base_folder,data_folder_name,"country_info.dta"))
+
+
+# Show static chart in addition to Kendo chart?
+show_static = F
+
+# Save underlying data files as CSV and charts as PDF files?
+pdf_csv_folder = here::here("report/local/figures/ch4.2") # Local folder only
+save_csv = TRUE
+save_pdf = TRUE
+
+# Create the output folder (only if it doesn't yet exist)
+dir.create(pdf_csv_folder, showWarnings = FALSE, recursive = TRUE)
+
+```
+
+```{r css_js}
+# Add standard stylesheets and javascript to support kendo
+cat(writeLines(readLines(here::here("report/resources/headers.htm"))))
+```
+
+
+# 4.2 International donor funding for tuberculosis: an analysis of donor reports to the Organisation for Economic Co-operation and Development
+
+In 2002, the World Health Organization (WHO) started annual monitoring of funding for tuberculosis (TB) prevention, diagnostic and treatment services, based on data reported by national TB programmes (NTPs) in annual rounds of global TB data collection. Findings have been published in global TB reports and peer-reviewed publications (`r ref_lnk("1&ndash;3")`). However, not all international donor funding for TB is captured in the data reported to WHO. Therefore, each year, WHO complements its analysis of data reported by NTPs with an assessment of international donor funding for TB, based on donor reports to the Organisation for Economic Co-operation and Development (OECD).
+
+The OECD’s creditor reporting system (CRS) (`r ref_lnk("4")`) is the most comprehensive source of information about international donor funding. The CRS Aid Activity database makes it possible to analyse where aid goes, what purposes it serves and what policies it aims to support, on a comparable basis for all members of the OECD Development Assistance Committee (DAC). Data are for countries or areas eligible to receive official development assistance (ODA); currently, this group comprises `r Fig1_txt` countries and areas, of which `r Fig1_lmic_txt` are low and middle-income countries (LMICs). Data are collected for individual projects and programmes, with a focus on financial data (`r ref_lnk("4")`). 
+
+As of `r report_year`, funding data (both commitments and disbursements) were provided by 36 multilateral donor organizations, 34 members of the OECD’s DAC (33 individual countries and the European Union) and a further 18 countries beyond the DAC that report to the OECD. Disbursement data include both direct transfers to countries and the provision of goods and services (e.g.&nbsp;in-kind transfers or technical assistance). Of note, the CRS does not capture funding for TB that flows from one OECD member to an institution or government within the OECD. In addition, government contributions that are channelled through multilateral organizations &mdash; such as The Global Fund &mdash; are attributed to the multilateral organization and not to the government of origin.
+
+As of July `r report_year`, the latest year for which data had been reported was `r latest_year`; data on gross total official disbursements for TB (code 12263: Tuberculosis control) received by non-OECD countries during 2013–`r latest_year` were analysed. Importantly, <b>this means that a major limitation of the currently available dataset is that it does not yet capture recent and substantial changes to the landscape of international donor funding</b>. These have been most obvious in 2025, but a reduction in funding (following 5 years of continuous growth) was already evident in 2024 (`r ref_lnk("5")`).
+
+`r lnk("Fig. 4.2.1")` shows trends in international donor funding for the TB response in the `r Fig1_txt` countries and areas eligible to receive ODA (as defined by the OECD) between 2013 and `r latest_year`, both overall and for each WHO region. In this period, total funding from all sources ranged from about US\$&nbsp;1.0 billion to US\$&nbsp;1.3 billion per year. There was a reduction of `r ftb( (all_donation / (filter(Fig1, donor=="Total", year==latest_year-2) |> slice(1) |> select(value) |> unlist()) -1 )*100*(-1) )`% between `r latest_year-2` (US\$&nbsp;`r ftb((Fig1_tot |> slice(1) |> select(value) |> unlist())/1e3)` billion) and `r latest_year` (US\$&nbsp;`r ftb(all_donation/1e3)` billion). 
+
+Throughout the period 2013&ndash;`r latest_year`, The Global Fund was consistently the largest provider of international donor funding for TB in LMICs, accounting for `r ftb(gf_contribution)`% on average. In `r latest_year`, funding from the Global Fund amounted to US\$&nbsp;`r gf_donation` million (`r round(100*gf_donation/all_donation,0)`% of the global total of US$&nbsp;`r ftb(all_donation/1e3)` billion). 
+
+### `r anch("Fig. 4.2.1")` <span class="fig" style="color:#F21905">Fig. 4.2.1</span> International donor funding for TB  by source based on donor reports to the OECD, for `r Fig1_txt` countries and areas eligible to receive ODA, overall and by WHO region,^a^ 2013&ndash;`r latest_year`
+
+``` {r fig_4_2_1, fig.alt="International donor funding for TB prevention, diagnosis and treatment by source, globally and by WHO region", fig.height = 6}
+
+ # summarise_at(.vars = "value", sum, na.rm = TRUE) |> 
+fig_4_2_1_plot <- Fig1 |>
+ ggplot(aes(x=year, y = value, col = donor)) +
+ geom_line(size=1, alpha=.85) +
+ facet_wrap(~g_whoregion, scales = 'free_y', strip.position = "top" , 
+            labeller = label_wrap_gen(width = 25)) +
+ scale_y_continuous(name = paste0("Millions (constant ", report_year-2," US$)")) +
+ scale_x_continuous("", breaks=seq(2013,latest_year,2)) +
+ scale_color_manual(values = c("#000000","#4ABAFC","#E63E13",#"#37F546",
+                               "#BCBCBC")) +
+ theme_gtb()
+
+output_ggplot(fig_4_2_1_plot, fig_4_2_1_plot$data, show_static, pdf_csv_folder, save_csv, save_pdf)
+```
+<div id="fig_1_lmc"></div>
+
+<div class="row">
+<div class="col-md-4">
+<div id="fig_1_afr"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_1_amr"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_1_sear"></div>
+</div>
+</div>
+
+<div class="row">
+<div class="col-md-4">
+<div id="fig_1_eur"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_1_emr"></div>
+</div>
+<div class="col-md-4">
+<div id="fig_1_wpr"></div>
+</div>
+</div>
+
+<div class="footnote">OECD: Organisation for Economic Co-operation and Development.
+<br>^a^ The OECD defines `r Fig1_txt` countries and areas as eligible for ODA, of which `r Fig1_lmic_txt` are LMICs. The subtotals for the six WHO regions do not sum to the total for all LMICs combined. This is because funding recorded in regional (rather than country-specific) categories used by the OECD cannot be matched to a specific WHO region, and the recipient country for country-level funding is sometimes not specified.</div>
+
+<hr>
+<br />
+Annual disbursements of bilateral funding from the United States of America (US) between 2013 and `r latest_year` that were recorded in the OECD database (`r lnk("Fig. 4.2.1")`) ranged from US\$&nbsp;`r ftb(Fig1 |> filter(donor == "United States of America" & g_whoregion ==paste0(Fig1_txt, " countries and areas\u1d43") & year==2016) |> select(value) |> unlist())` million to US\$&nbsp;`r ftb(Fig1 |> filter(donor == "United States of America" & g_whoregion ==paste0(Fig1_txt, " countries and areas\u1d43") & year==2018) |> select(value) |> unlist())` million. In `r latest_year`, the total amount disbursed was US\$&nbsp;`r ftb(Fig1 |> filter(donor == "United States of America" & g_whoregion ==paste0(Fig1_txt, " countries and areas\u1d43") & year==latest_year) |> select(value) |> unlist())` million; the largest share (`r ftb(Fig1_region |> slice(1) |> select(pct) |> unlist())`%) was provided to countries in the WHO African Region.
+These amounts were lower than official US congressional allocations for TB (`r ref_lnk("6, 7")`), which grew from US\$&nbsp;`r ftb(Fig2 |> filter(year == 2013) |> select(value) |> unlist())` million in 2013 to US\$&nbsp;`r ftb(Fig2 |> filter(year == latest_year) |> select(value) |> unlist())` million in `r report_year-3`&ndash;`r report_year-1` and slightly declined to US\$&nbsp;`r ftb(Fig2 |> filter(year == report_year) |> select(value) |> unlist())` million in `r report_year` (`r lnk("Fig. 4.2.2")`).   
+
+### `r anch("Fig. 4.2.2")` <span class="fig" style="color:#F21905">Fig. 4.2.2</span> Official US congressional allocations of funding for TB, 2013&ndash;`r report_year`
+
+``` {r fig2, fig.alt="US funding for TB"}
+
+Fig2_plot <- Fig2   %>% 
+ filter(year >= 2013 ) %>% 
+ ggplot(aes(x=year, y = value)) +
+ geom_bar(stat = "identity", fill = "#4ABAFC") +
+ scale_y_continuous(name = paste0("Millions (current US$)")) +
+ scale_x_continuous("", breaks=seq(2013,report_year,2)) +
+ theme_gtb() +
+ annotate("segment", x=-Inf, 
+          xend=Inf, 
+          y=-Inf, 
+          yend=-Inf, 
+          colour = "#BCBCBC") 
+
+output_ggplot(Fig2_plot, Fig2_plot$data, show_static, pdf_csv_folder, save_csv, save_pdf)
+```
+<div id="fig_2"></div>
+
+
+<hr>
+<br />
+
+When bilateral funding from individual countries reported to the OECD is combined with estimates of individual country contributions for TB that are channelled through The Global Fund, the US government was by far the largest source of international donor funding for TB, accounting for `r ftb(Fig3 |> filter(donor == "United States of America") |> select(pcnt) |> unlist())`% of the total in the period 2013&ndash;`r latest_year` (`r lnk("Fig. 4.2.3")`). In the most recent year for which data are available (`r latest_year`), the share was `r ftb(us_trend |> filter(year == latest_year) |> select(us_pcnt) |> unlist())`%. 
+
+After the US government, the next largest individual country contributors in the period 2013&ndash;`r latest_year` were (in order of their contribution) the United Kingdom of Great Britain and Northern Ireland (`r ftb(Fig3 |> filter(donor == "United Kingdom") |> select(pcnt) |> unlist())`%), France (`r ftb(Fig3 |> filter(donor == "France") |> select(pcnt) |> unlist())`%), Germany (`r ftb(Fig3 |> filter(donor == "Germany") |> select(pcnt) |> unlist())`%), Canada (`r ftb(Fig3 |> filter(donor == "Canada") |> select(pcnt) |> unlist())`%) and Japan (`r ftb(Fig3 |> filter(donor == "Japan") |> select(pcnt) |> unlist())`%). Preliminary OECD DAC data indicate that total ODA declined in real terms in 2025 for all five countries (`r ref_lnk("8")`). Several also reduced their pledges to the Global Fund replenishment 2026&ndash;2028 grant cycle (`r ref_lnk("9, 10")`); this will impact funding for the health sector, including the TB response, from 2026.
+
+
+
+### `r anch("Fig. 4.2.3")` <span class="fig" style="color:#F21905">Fig. 4.2.3</span> Distribution of international donor funding for TB when Global Fund contributions are allocated to individual countries and other reporting entities,^a^ 2013&ndash;`r latest_year`
+
+<div class="subhead">Funding totals for each entity are the sum of a) funding reported to the OECD, excluding that channelled via The Global Fund and b) an estimate of the funding provided for TB via The Global Fund.^b^</div> 
+
+``` {r fig_4.2.3, fig.alt="International donor funding (in US$ millions) for TB prevention, diagnosis and treatment from individual countries", fig.height = 8, , fig.width = 12}
+
+Fig4_2_3_plot <- ggplot2::ggplot(Fig3,aes(area=pcnt,fill=donor,label=donor))+ 
+  treemapify::geom_treemap(layout="squarified", col="white")+ 
+  geom_treemap_text(place = "centre",layout = "squarified", size = 15,
+                    fontface = "bold",
+                    colour = Fig3$text_col) + 
+  theme_gtb() + 
+  theme(legend.position = "none") +
+  scale_fill_manual(values  = Fig3$fill_col)
+  # scale_fill_manual(values  = as.vector(rev(pals::brewer.ylgn(11))))
+
+output_ggplot(Fig4_2_3_plot, Fig3, show_static = T, pdf_csv_folder, save_csv, save_pdf)
+
+
+```
+<div class="footnote">OECD: Organisation for Economic Co-operation and Development; United Kingdom: United Kingdom of Great Britain and Northern Ireland.<br>
+^a^ Other reporting entities include any countries beyond the 10 that are labelled that provide international donor funding for TB, and multilateral agencies (excluding The Global Fund).<br>
+^b^ The estimate is based on the assumption that the share of a country or other entity’s contribution to TB funding provided by The Global Fund is the same as its share of total contributions to The Global Fund. For example, if a country provided 5% of the total contributions to The Global Fund, it was assumed to provide 5% of the TB funding attributed to The Global Fund in the OECD database.</div>
+
+
+<hr>
+<br />
+
+The amount of international funding for TB (US\$&nbsp;`r ftb(Fig4 |> filter(year == latest_year & sector == "TB control") |> select(value) |> unlist())` billion in `r latest_year`) is much less than that for malaria (US\$&nbsp;`r (Fig4 |> filter(year == latest_year & sector == "Malaria control") |> select(value) |> unlist() |> round(1))` billion in `r latest_year`) and HIV (US\$&nbsp;`r (Fig4 |> filter(year == latest_year & sector == "STD control including HIV") |> select(value) |> unlist() |> round(1))` billion in `r latest_year`) (`r lnk("Fig. 4.2.4")`). Overall, TB funding constitutes `r ftb(tb_pct$pct)`% of total ODA funding for health and population programmes (US$&nbsp;`r (Fig4 |> filter(year == latest_year & sector == "Total health and population programmes") |> select(value) |> unlist() |> round(0))` billion in `r latest_year`).
+
+
+
+### `r anch("Fig. 4.2.4")` <span class="fig" style="color:#F21905">Fig. 4.2.4</span> International donor funding for Health and Population programmes, TB, HIV and malaria, 2013&ndash;`r latest_year`
+ 
+
+``` {r fig_4.2.4, fig.alt="Funding for TB compared with global target"}
+
+# Create a label dataset (since the graph is faceted and easiest way to label is to create this)
+# graph_labels <- FigB5.3 |> select(x=year, y = value, name) |> 
+#  filter(x %in% c(2010, 2013, 2017, latest_year))
+
+
+Fig_4_2_4_plot <- Fig4 |> 
+ ggplot(aes(x=year, y = value, col = sector)) +
+ geom_line(size=1, alpha=.85) +
+ # geom_text(data = graph_labels, aes(x,y=y+1,label=signif(y,2)), 
+ #           col = "#222222",vjust = "top", hjust = "middle") +
+ scale_y_continuous(name = paste0("Billions (constant ", report_year-2," US$)")) +
+ scale_x_continuous("", breaks=seq(2013,latest_year,2)) +
+ scale_color_manual(values = c("#4ABAFC","#E63E13","#37F546", "#000000"))+
+ theme_gtb(
+  #base_size = 16, axis_text_size = 12, axis_text_face = "bold"
+ )+
+ # theme(legend.position = "none") +
+ # Add line labels
+ # annotate("text", x = latest_year-1, y = 0, label = "TB", col="#4ABAFC") +
+ # annotate("text", x = latest_year-1, y = 5, label = "HIV", col="#E63E13") +
+ # annotate("text", x = latest_year-1, y = 3, label = "Malaria", col="#37F546") +
+ # annotate("text", x = latest_year-1, y = 21, label = "Health", col="#000000") +
+ # 
+ annotate("segment", x=-Inf, 
+          xend=Inf, 
+          y=-Inf, 
+          yend=-Inf, 
+          colour = "#BCBCBC") 
+
+output_ggplot(Fig_4_2_4_plot, Fig4, show_static, pdf_csv_folder, save_csv, save_pdf)
+```
+<div id="fig_4"></div>
+<div class = "footnote">HIV: human immunodeficiency virus; STD: sexually transmitted disease. </div>
+<br />
+
+
+
+`r anch("refs")`
+
+<hr style="border:1px solid gray20">
+
+**References**
+
+1.	Floyd K, Fitzpatrick C, Pantoja A, Raviglione M. Domestic and donor financing for tuberculosis care and control in low-income and middle-income countries: an analysis of trends, 2002–11, and requirements to meet 2015 targets. Lancet Glob Health. 2013;1(2):e105–15 (https://doi.org/10.1016/S2214-109X(13)70032-9).
+
+2.	Floyd K, Pantoja A, Dye C. Financing tuberculosis control: the role of a global financial monitoring system. Bull World Health Organ. 2007;85(5):334–40 (https://doi.org/10.2471/blt.06.034942).
+
+3.	Su Y, Garcia Baena I, Harle AC, Crosby SW, Micah AE, Siroka A et al. Tracking total spending on tuberculosis by source and function in 135 low-income and middle-income countries, 2000–17: a financial modelling study. Lancet Infect Dis. 2020;20(8):929–42 (https://doi.org/10.1016/S1473-3099(20)30124-9).
+
+4.	OECD Data Explorer [website]. Paris: Organisation for Economic Co-operation and Development; 2026 (https://data-explorer.oecd.org/).
+
+5.  International aid falls in 2024 for first time in six years, says OECD [website]. Organisation for Economic Co-operation and Development; 2025 (https://www.oecd.org/en/about/news/press-releases/2025/04/official-development-assistance-2024-figures.html).
+
+6.	Breaking Down the U.S. Global Health Budget by Program Area [website]. San Francisco: Kaiser Family Foundation; 2026 (https://www.kff.org/global-health-policy/breaking-down-the-u-s-global-health-budget-by-program-area).
+
+7.	US foreign assistance dashboard [website]. Washington, D.C.: Office of Management and Budget, Agency Congressional Budget Justifications, Congressional Appropriation Bills; 2026 (https://foreignassistance.gov/).
+
+8.	A historic decline in foreign aid: Preliminary 2025 ODA data [website]. Paris: Organisation for Economic Co-operation and Development; 2026 (https://www.oecd.org/en/data/insights/data-explainers/2026/04/a-historic-decline-in-foreign-aid-preliminary-2025-oda-data.html).
+
+9.	Global Fund Board welcomes final eighth replenishment outcome of US$12.64 billion, backs strategic shifts to advance countries’ path to self-reliance [website]. Global Fund to Fight AIDS, Tuberculosis and Malaria; 2026 (https://www.theglobalfund.org/en/news/2026/2026-02-18-global-fund-board-welcomes-final-eighthreplenishment-outcome/).
+
+10.	Global Fund board hails record-breaking seventh replenishment final outcome of US$15.7 billion [website]. Global Fund to Fight AIDS, Tuberculosis and Malaria; 2022  (https://www.theglobalfund.org/en/news/2022/2022-11-18-global-fund-board-hails-record-breaking-seventhreplenishment-final-outcome-of-usd157-billion/).
+
+
+
+```{r js_functions}
+# Insert javascript file containing common Kendo number formatting functions ----
+cat(writeLines(readLines(here::here("report/resources/gtbr_js.htm"))))
+```
+
+<script type="text/javascript">
+/* JSON data objects for the figures */
+
+var fig_OECD1_data = `r Fig1 |> pivot_wider(names_from = donor, values_from = value) |> rename(tot=3,gf=4,us=5,oth=6) |> toJSON("rows") `; 
+
+var fig_OECD2_data = `r Fig2 |> toJSON("rows") `; 
+
+var fig_OECD4_data = `r Fig4 |> pivot_wider(names_from = sector, values_from = value) |> rename(malaria=3,tb=4,std=2,total=5) |> toJSON("rows") `; 
+
+</script>
+
+```{js, echo=FALSE}
+
+/* Functions to create the figures */
+
+function createFig_OECD2(fig_ID, data) {
+
+  	// Filter the dataset on the country variable
+		$(fig_ID).kendoChart({
+			dataSource: data,
+			chartArea: {
+				height: 300
+			},	
+
+			legend: {
+				position: "bottom",
+				orientation: "vertical",
+			},
+			seriesDefaults: {
+				type: "column"
+			},
+			series: [
+			{name: "",
+				field: "value",
+				color: "dodgerblue",
+        tooltip: {
+				visible: true,
+				template: "#= category #: US$ #= num_spacer(value) # million"
+			}
+			},],
+			valueAxis: {
+				title: {
+					text: "Millions (current US$)"
+				},
+				line: {
+					visible: false
+				},
+			},
+			categoryAxis: {
+				field: "year",
+				labels: {
+					rotation: 0,
+          step: 2
+				},
+				majorGridLines: {
+					visible: false
+				},
+				title: {
+					text: ""
+				}
+			},
+		});
+}
+
+
+
+function createFig_OECD1(fig_ID,data,filter) {
+  	// Filter the dataset on the country variable
+		dataJSON = data.filter( element => element.g_whoregion == filter);
+  
+		$(fig_ID).kendoChart({		
+      dataSource: dataJSON,			
+			chartArea: {
+				height: 400
+			},	     
+      title: {
+				text: filter,
+				color: "black",
+				font: "bold 14px  Arial,Helvetica,sans-serif",
+        align: "center"
+			},	  
+			legend: {
+				position: "bottom"
+			},
+			seriesDefaults: {
+				type: "line",
+			},
+			series: [{
+        name: "Total",
+				field: "tot",
+				color: "#000000",
+        markers: {
+          size: 5
+        },
+        tooltip: {
+				visible: true,
+				template: "Development assistance, total (#= category #): #= num_spacer(value) # million (constant 2024 US$)"
+			}
+			},{
+        name: "Global Fund",
+				field: "gf",
+				color: "#4ABAFC",
+        markers: {
+          size: 5
+        },
+        tooltip: {
+				visible: true,
+				template: "Global Fund (#= category #): #= num_spacer(value) # million (constant 2024 US$)"
+			}
+			},{
+        name: "United States of America",
+				field: "us",
+				color: "#E63E13",
+        markers: {
+          size: 5
+        },
+        tooltip: {
+				visible: true,
+				template: "United States of America (#= category #): #= num_spacer(value) # million (constant 2024 US$)"
+			}
+			},{
+        name: "Other",
+				field: "oth",
+				color: "#BCBCBC",
+        markers: {
+          size: 5
+        },
+        tooltip: {
+				visible: true,
+				template: "Other (#= category #): #= num_spacer(value) # million (constant 2024 US$)"
+			}
+			},],
+			valueAxis: {
+				labels: {
+				template: "#= kendo.format('{0}',value) #",
+				},
+				title: {
+					text: "Millions (constant 2024 US$)"
+				},
+				line: {
+					visible: false
+				},
+			},
+			categoryAxis: {
+				field: "year",
+				labels: {
+					rotation: 0,
+					step: 2
+				},
+				majorGridLines: {
+					visible: false
+				}			}
+		});
+}
+
+
+function createFig_OECD4(fig_ID,data) {
+  	// Filter the dataset on the country variable
+
+		$(fig_ID).kendoChart({		
+      dataSource: data,			
+			chartArea: {
+				height: 600
+			},	     
+			legend: {
+				position: "bottom"
+			},
+			seriesDefaults: {
+				type: "line",
+			},
+			series: [{
+        name: "TB",
+				field: "tb",
+				color: "#4ABAFC",
+        markers: {
+          size: 5
+        },
+        tooltip: {
+				visible: true,
+				template: "TB (#= category #): #= value.toPrecision(2) # billion (constant 2024 US$)"
+			}
+			},{
+        name: "STD including HIV",
+				field: "std",
+				color: "#E63E13",
+        markers: {
+          size: 5
+        },
+        tooltip: {
+				visible: true,
+				template: "STD including HIV (#= category #): #= value.toPrecision(2) # billion (constant 2024 US$)"
+			}
+			},{
+        name: "Malaria",
+				field: "malaria",
+				color: "#37F546",
+        markers: {
+          size: 5
+        },
+        tooltip: {
+				visible: true,
+				template: "Malaria (#= category #): #= value.toPrecision(2) # billion (constant 2024 US$)"
+			}
+			},{
+        name: "Total health and population programmes",
+				field: "total",
+				color: "#000000",
+        markers: {
+          size: 5
+        },
+        tooltip: {
+				visible: true,
+				template: "Total health and population programmes (#= category #): #= value.toPrecision(2) # billion (constant 2024 US$)"
+			}
+			},],
+			valueAxis: {
+				labels: {
+				template: "#= kendo.format('{0}',value) #",
+				},
+				title: {
+					text: "Billions (constant 2024 US$)"
+				},
+				line: {
+					visible: false
+				},
+			},
+			categoryAxis: {
+				field: "year",
+				labels: {
+					rotation: 0,
+					step: 2
+				},
+				majorGridLines: {
+					visible: false
+				}			}
+		});
+}
+
+
+```
+
+```{js, echo=FALSE}
+
+/* Create the figures after the document has been loaded */
+$(document).ready(function() {
+  createFig_OECD1("#fig_1_lmc",fig_OECD1_data,"141 countries and areas\u1d43");
+  createFig_OECD1("#fig_1_afr",fig_OECD1_data,"WHO African Region");
+  createFig_OECD1("#fig_1_amr",fig_OECD1_data,"WHO Region of\nthe Americas");
+  createFig_OECD1("#fig_1_sear",fig_OECD1_data,"WHO South-East Asia\nRegion");
+  createFig_OECD1("#fig_1_eur",fig_OECD1_data,"WHO European Region");
+  createFig_OECD1("#fig_1_emr",fig_OECD1_data,"WHO Eastern Mediterranean\nRegion");
+  createFig_OECD1("#fig_1_wpr",fig_OECD1_data,"WHO Western Pacific\nRegion");
+  createFig_OECD2("#fig_2",fig_OECD2_data);
+  createFig_OECD4("#fig_4",fig_OECD4_data);
+  
+});
+
+```

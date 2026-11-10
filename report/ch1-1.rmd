@@ -1,0 +1,2742 @@
+--- 
+title: "Section 1.1 TB incidence" 
+author: "Mathieu Bastard" 
+date: "`r Sys.Date()`" 
+knit: (function(inputFile, encoding) {
+      out_dir <- "./local";
+      rmarkdown::render(inputFile,
+                        encoding=encoding,
+                        output_dir=file.path(dirname(inputFile), out_dir))})
+output:
+  html_fragment:
+    # Don’t include a table of contents
+    toc: no
+    # Set standard figure width to 12 inches
+    fig_width: 12
+    # Don’t write figure captions
+    fig_caption: FALSE
+    # Don't embed external resources (stylesheets, JS libraries) in the output
+    self_contained: FALSE
+    # Don't include <div> tags around a header and the content found until the next header
+    section_divs: FALSE  
+
+# To run this file and store output as html:
+# rmarkdown::render(here::here("report/ch1-1.rmd"), output_file = "ch1-1.html", output_dir = here::here("report/local/"))
+--- 
+
+
+```{r setup, include=FALSE} 
+# Chapter 1
+# Set options, load data, utility functions 
+
+knitr::opts_chunk$set(echo = FALSE, 
+                      results = "asis",
+                      message = FALSE,
+                      warning = FALSE,
+                      error = TRUE, # for debugging!
+                      
+                      # Settings for better output of whomapper .png maps
+                      fig.width = 10,
+                      fig.height = 5,
+                      dpi = 350
+                      )
+
+# Kill any attempt at using factors, unless we explicitly want them!
+options(stringsAsFactors=FALSE)
+options(scipen=999)
+
+
+# Load output packages ----
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+library(data.table)
+library(gtbreport)
+library(here)
+library(kableExtra)
+library(gridExtra)
+# library(whomap)
+# devtools::install_github("yamanakatakuya/whomapR")
+# from https://github.com/yamanakatakuya/whomapR
+library(whomapR)
+library(ggrepel)
+#library(ggpubr)
+library(RColorBrewer)
+library(tidyverse)
+library(stringr)
+library(jsonlite)
+library(dplyr)
+
+# Prepare data for the chapter
+source(here('report/ch1_prepare_data.R'))
+
+# Load R functions ----
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+source(here("report/functions/html_links.R"))
+
+# Load standard note about Indonesia moving to WPR ----
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+source(here("report/resources/IDN_2_WPR_note.R"))
+
+
+# Set output options ----
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+
+# Show static chart in addition to Kendo chart?
+show_static = FALSE
+
+# Save underlying data files as CSV and charts as PDF files?
+pdf_csv_folder = here::here("report/local/figures/ch1-1")
+save_csv = TRUE
+save_pdf = TRUE
+save_hidef = FALSE # TRUE only for producing a high definition map for the PDF!
+
+# Create the output folder (only if it doesn't yet exist)
+dir.create(pdf_csv_folder, showWarnings = FALSE, recursive = TRUE)
+
+
+``` 
+
+```{r css_js}
+# Add standard stylesheets and javascript to support kendo
+cat(writeLines(readLines(here("report/resources/headers.htm"))))
+```
+
+```{css, echo=FALSE}
+
+/* Table 1.1.1 */
+/* Recreating simple striped bootstrap table */
+#burden_num_table {
+  border-spacing: 0;
+  border-collapse: collapse;
+  margin-top: 1em;
+  margin-bottom: 1em;
+  /* Next two lines to allow horizontal scrolling on narrow screens */
+  display: block;
+  overflow-x: auto;
+}
+
+#burden_num_table th {
+  border-bottom: 2px solid #DDDDDD;
+  padding: 8px;
+}
+
+#burden_num_table td {
+  border-top: 1px solid #DDDDDD;
+  padding: 8px;
+}
+
+/* light gray for odd rows */
+#burden_num_table tr:nth-child(odd) td {
+  background-color: #F5F5F5;	
+}
+
+/* Bold for the final row with thick line above */
+#burden_num_table tr:last-child td {
+  border-top: 2px solid #DDDDDD;
+  font-weight:bold;	
+}
+
+/* light gray when hovering over a row */
+#burden_num_table tr:hover td {
+  background-color: #DDDDDD;
+}
+
+/* Centre-align all column headings except for the first */
+#burden_num_table th:not(:first-child) {
+  text-align: center !important;
+}
+
+/* prevent numbers from wrapping in any of the columns */
+#burden_num_table td {
+  white-space: nowrap;
+}
+
+
+
+
+/* Table 1.1.2 */
+/* Recreating simple striped bootstrap table */
+#method_table {
+  border-spacing: 0;
+  border-collapse: collapse;
+  margin-top: 1em;
+  margin-bottom: 1em;
+  width: 100%; /* Ensures the table takes up the available container width */
+}
+
+#method_table th {
+  border-bottom: 2px solid #DDDDDD;
+  padding: 8px;
+}
+
+#method_table td {
+  border-top: 1px solid #DDDDDD;
+  padding: 8px;
+  white-space: normal; /* Allows text to wrap into multiple rows */
+}
+
+/* light gray for odd rows */
+#method_table tr:nth-child(odd) td {
+  background-color: #F5F5F5;    
+}
+
+/* light gray when hovering over a row */
+#method_table tr:hover td {
+  background-color: #DDDDDD;
+}
+
+/* Centre-align all column headings except for the first */
+#method_table th:not(:first-child) {
+  text-align: center !important;
+}
+
+/* Optional: Keep numbers from wrapping by applying nowrap specifically to the number/share columns (columns 3 and 4) */
+#method_table td:nth-child(3),
+#method_table td:nth-child(4) {
+  white-space: nowrap;
+  text-align: center;
+}
+
+
+
+
+
+
+body {
+    margin: 0;
+}
+
+```
+
+```{r}
+# to format 100 000 as a R object, avoid breaking lines
+cm=formatC(1e5, format="f", big.mark=" ", digits=0)
+
+# Estimates year
+yr=2025
+```
+
+
+
+# 1.1 TB incidence
+
+_Draft! Prepared `r Sys.Date()` using country-reported data snapshot files from `r snapshot_date` and incidence estimates from `r est_date`_
+
+An estimated global total of `r round(global$inc.num[global$year==yr]/1e6,1)` million people (95% uncertainty interval [UI]: `r round(global$inc.lo.num[global$year==yr]/1e6,1)`–`r round(global$inc.hi.num[global$year==yr]/1e6,1)` million) fell ill with TB in `r yr`, equivalent to `r round(global$inc[global$year==yr],0)` incident cases (95% UI: `r round(global$inc.lo[global$year==yr],0)`–`r round(global$inc.hi[global$year==yr],0)`) per `r cm` population (`r lnk("Table 1.1.1")`). Among all incident TB cases, `r round(100*global$inc.h.num[global$year==yr]/global$inc.num[global$year==yr],1)`% were among people living with HIV. Most TB cases in `r yr` were in the WHO regions of South-East Asia (`r round(100*regional$inc.num[regional$year==yr & regional$g.whoregion=="SEA"]/global$inc.num[global$year==yr],0)`%), the Western Pacific (`r round(100*regional$inc.num[regional$year==yr & regional$g.whoregion=="WPR"]/global$inc.num[global$year==yr],0)`%) and Africa (`r round(100*regional$inc.num[regional$year==yr & regional$g.whoregion=="AFR"]/global$inc.num[global$year==yr],0)`%), with smaller shares in the Eastern Mediterranean (`r round(100*regional$inc.num[regional$year==yr & regional$g.whoregion=="EMR"]/global$inc.num[global$year==yr],1)`%), the Americas (`r round(100*regional$inc.num[regional$year==yr & regional$g.whoregion=="AMR"]/global$inc.num[global$year==yr],1)`%) and Europe (`r round(100*regional$inc.num[regional$year==yr & regional$g.whoregion=="EUR"]/global$inc.num[global$year==yr],1)`%). 
+
+
+### `r anch("Table 1.1.1")`<span class="red">Table 1.1.1</span> Global and regional estimates of TB incidence, numbers (in thousands) and rates (per `r cm` population) in `r yr`
+<div class="subhead">Lower and upper ends of the 95% uncertainty interval (UI).</div>
+
+
+```{r tab_1.1.1}
+
+tab.header <- c('Region or country group','Population','Best estimate','Low', 'High',
+                  'Best estimate', 'Low', 'High',
+                  'Best estimate', 'Low', 'High',
+                  'Best estimate', 'Low', 'High'
+                  )
+
+knitr::kable(cbind(tabinc[c(32:37, 31, 38), 1:8], tabmort[c(32:37, 31, 38), 2:7]),
+             format = "html",
+             align = 'rccccccccccccc',
+             col.names = tab.header,
+             # Add a table ID so that it can be styled using extra CSS in Sitefinity
+             table.attr = "id='burden_num_table'") |>
+add_header_above(header = c(" " = 2, "Total" = 3, "People living with HIV" = 3, "Total" = 3, "People living with HIV" = 3)) |>
+add_header_above(header = c(" " = 2, "Number of cases (in thousands)" = 6, "Number per 100 000 population" = 6)) 
+  # pack_rows("High burden countries", 1, 30) |>
+  # pack_rows('Groupings', 31, 38) 
+
+
+```
+
+<hr />
+<br />
+
+```{r}
+
+inc.cases.24=round(global$inc.num[global$year==2024]/1e6,1)
+inc.cases.24.lo=round(global$inc.lo.num[global$year==2024]/1e6,1)
+inc.cases.24.hi=round(global$inc.hi.num[global$year==2024]/1e6,1)
+
+inc.cases.23=round(global$inc.num[global$year==2023]/1e6,1)
+inc.cases.23.lo=round(global$inc.lo.num[global$year==2023]/1e6,1)
+inc.cases.23.hi=round(global$inc.hi.num[global$year==2023]/1e6,1)
+
+inc.cases.22=round(global$inc.num[global$year==2022]/1e6,1)
+inc.cases.22.lo=round(global$inc.lo.num[global$year==2022]/1e6,1)
+inc.cases.22.hi=round(global$inc.hi.num[global$year==2022]/1e6,1)
+
+inc.cases.21=round(global$inc.num[global$year==2021]/1e6,1)
+inc.cases.21.lo=round(global$inc.lo.num[global$year==2021]/1e6,1)
+inc.cases.21.hi=round(global$inc.hi.num[global$year==2021]/1e6,1)
+
+inc.cases.20=round(global$inc.num[global$year==2020]/1e6,1)
+inc.cases.20.lo=round(global$inc.lo.num[global$year==2020]/1e6,1)
+inc.cases.20.hi=round(global$inc.hi.num[global$year==2020]/1e6,1)
+
+```
+
+
+In `r yr`, the estimated number of people who fell ill with TB worldwide decreased for the second consecutive year, continuing the reversal of increases between 2020 and 2023 that occurred during and in the aftermath of the COVID-19 pandemic (`r lnk("Fig. 1.1.1")`, panel a). The TB incidence rate (new cases per `r cm` population per year) also continued to decrease, by `r round(100-(100*global$inc[global$year==yr]/global$inc[global$year==yr-1]),1)`% between 2024 and 2025 (`r lnk("Fig. 1.1.1")`, panel b), and is now below the level of 2020 (the historic low, pre-COVID).
+
+Globally, the net reduction in the TB incidence rate from 2015 to `r yr` was `r ftb(100-(100*global$inc[global$year==yr]/global$inc[global$year==2015]))`%, far short of the WHO End TB Strategy milestone of a `r (1-inc.milestone.vs.2015)*100`% reduction by `r inc.mort.milestone.yr` (`r ref_lnk("1, 2")`).
+
+### `r anch("Fig. 1.1.1")`<span class="red">Fig. 1.1.1</span> Global trends in the estimated number of incident TB cases (a) and the incidence rate (b), 2010&#8211;`r yr`
+<div class="subhead">Shaded areas represent 95% uncertainty intervals. The horizontal dashed line shows the `r inc.mort.milestone.yr` milestone of the End TB Strategy, which was a `r (1-inc.milestone.vs.2015)*100`% reduction in the TB incidence rate between 2015 and `r inc.mort.milestone.yr`.</div>
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, results = "asis", dev = 'png', fig_1.1.1, fig.alt="Estimated number of incident TB cases and the incidence rate in 2025"} 
+
+f1.1.1a <- 
+  qplot(
+    year,
+    inc.num / 1e6,
+    data = subset(global,year>=2010),
+    geom = 'line',
+    colour = I('blue')
+  ) +
+  geom_ribbon(
+    aes(year, ymin = inc.lo.num / 1e6, ymax = inc.hi.num / 1e6),
+    fill = I('blue'),
+    alpha = 0.4
+  ) +
+  geom_line(aes(year, inc.h.num / 1e6), colour = I('lightskyblue2')) +
+  geom_line(aes(year, c.newinc / 1e6)) +
+  geom_ribbon(
+    aes(year, ymin = inc.h.lo.num / 1e6, ymax = inc.h.hi.num / 1e6),
+    fill = I('lightskyblue2'),
+    alpha = 0.4
+  ) +
+  ylab('Millions per year') + xlab('') +
+  annotate(
+    'text',
+    x = 2010,
+    y = 7.9,
+    label = 'Total',
+    hjust = 0,
+    size = I(4)
+  ) +
+  annotate(
+    'text',
+    x = 2015,
+    y = 4.2,
+    label = 'Case notifications of people \nnewly diagnosed with TB',
+    hjust = 0,
+    size = I(4)
+  ) +
+  annotate(
+    'text',
+    x = 2010,
+    y = 0.9,
+    label = 'People living with HIV',
+    hjust = 0,
+    size = I(4)
+  ) +
+  expand_limits(y = 1) +
+  # scale_y_log10() +
+  scale_x_continuous(breaks=seq(2010,2015,2025)) +
+  #scale_x_continuous(breaks=c(2010,2015,2019,2023)) +
+  
+  theme_bw(base_size = 14)+
+  theme_gtb()
+
+
+f1.1.1a_data=global[year>=2010,.(year,inc.num,inc.lo.num,inc.hi.num,inc.h.num,inc.h.lo.num,inc.h.hi.num,c.newinc)]
+
+output_ggplot(f1.1.1a, f1.1.1a_data, show_static, pdf_csv_folder, save_csv, save_pdf)
+
+
+## Fig1b
+
+f1.1.1b <- 
+  qplot(
+    year,
+    inc,
+    data = subset(global,year>=2010),
+    geom = 'line',
+    colour = I('blue')
+  ) +
+  geom_ribbon(
+    aes(year, ymin = inc.lo, ymax = inc.hi),
+    fill = I('blue'),
+    alpha = 0.4
+  ) +
+  geom_line(aes(year, inc.h), colour = I('lightskyblue2')) +
+  geom_line(aes(year, newinc)) +
+  geom_ribbon(
+    aes(year, ymin = inc.h.lo, ymax = inc.h.hi),
+    fill = I('lightskyblue2'),
+    alpha = 0.4
+  ) +
+  geom_hline(aes(yintercept = inc.milestone), linetype = I(2)) +
+  
+  ylab('Number per 100 000 population per year') + xlab('') +
+  annotate(
+    'text',
+    x = 2020,
+    y = 60,
+    label = paste(inc.mort.milestone.yr, 'milestone'),
+    hjust = 0,
+    size = I(4)
+  ) +
+  annotate(
+    'text',
+    x = 2012,
+    y = 190,
+    label = 'Total',
+    hjust = 0,
+    size = I(4)
+  ) +
+  annotate(
+    'text',
+    x = 2010,
+    y = 110,
+    label = 'Case notifications of people \nnewly diagnosed with TB',
+    hjust = 0,
+    size = I(4)
+  ) +
+  annotate(
+    'text',
+    x = 2010,
+    y = 10,
+    label = 'People living with HIV',
+    hjust = 0,
+    size = I(4)
+  ) +  
+  expand_limits(y = 0) +
+  # scale_y_log10() +
+  scale_x_continuous(breaks=seq(2010,2022,2)) +
+  theme_bw(base_size = 14)+
+  theme_gtb()
+
+
+f1.1.1b_data=global[year>=2010,.(year,inc,inc.lo,inc.hi,inc.h,inc.h.lo,inc.h.hi,newinc)]
+
+output_ggplot(f1.1.1b , f1.1.1b_data, show_static, pdf_csv_folder, save_csv, save_pdf)
+
+
+```
+
+
+<div class="col-md-6">
+#### (a) Number
+<div id="fig_1_1_1a"></div>
+</div>
+<div class="col-md-6">
+#### (b) Number per `r cm` population
+<div id="fig_1_1_1b"></div>
+</div>
+
+<hr />
+<br />
+
+The estimated increases in TB incidence between 2020 and 2023 were the consequence of disruptions to TB diagnosis and treatment during the COVID-19 pandemic, when the reported number of people newly diagnosed with TB fell from `r round(global$c.newinc[global$year==2019]/1e6,1)` million in 2019 to `r round(global$c.newinc[global$year==2020]/1e6,1)` million in 2020 and `r round(global$c.newinc[global$year==2021]/1e6,1)` million in 2021 (`r lnk("Fig. 1.1.1")`; <span class="red">Section 2.1</span>). These reductions were assumed to have resulted in an increase in the number of people with untreated TB and an associated increase in transmission.
+
+The big global recovery in the reported number of people newly diagnosed with TB in 2022 and 2023, which was then consolidated in 2024 and 2025 (<span class="red">Section 2.1</span>), has resulted in first a slowing of increases in TB incidence, and then a reversal of the upward trend. In `r yr`, both the TB incidence rate and the estimated number of people who fell ill with TB continued to decrease, for the second consecutive year since the COVID-19 pandemic.
+
+In `r yr`, `r f1.1.2_top |> nrow() |> int2word()` countries accounted for about two thirds of global TB cases: `r f1.1.2_top[1,"country.in.text.EN"]` (`r ftb(f1.1.2_top[1,"pct"])`%), `r f1.1.2_top[2,"country.in.text.EN"]` (`r ftb(f1.1.2_top[2,"pct"])`%), `r f1.1.2_top[3,"country.in.text.EN"]` (`r ftb(f1.1.2_top[3,"pct"])`%), `r f1.1.2_top[4,"country.in.text.EN"]` (`r ftb(f1.1.2_top[4,"pct"])`%), `r f1.1.2_top[5,"country.in.text.EN"]` (`r ftb(f1.1.2_top[5,"pct"])`%), `r f1.1.2_top[6,"country.in.text.EN"]` (`r ftb(f1.1.2_top[6,"pct"])`%), `r f1.1.2_top[7,"country.in.text.EN"]` (`r ftb(f1.1.2_top[7,"pct"])`%) and `r f1.1.2_top[8,"country.in.text.EN"]` (`r ftb(f1.1.2_top[8,"pct"])`%) (`r lnk("Fig. 1.1.2")` and `r lnk("Fig. 1.1.3")`). 
+
+
+### `r anch("Fig. 1.1.2")`<span class="red">Fig. 1.1.2</span> Estimated number of incident TB cases for countries with at least `r cm` incident cases, `r yr`
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, results = "asis", dev = 'png', fig_1.1.2, fig.alt="Estimated number of incident TB cases in 2025, for countries with at least 100 000 incident cases"} 
+
+dta <- est[year == yr & inc.num > 1e5, .(iso3, size = inc.num)]
+dta <- merge(dta, cty[,.(iso3, country)], by='iso3')
+
+dta[iso3=="PRK", inc.num:=NA]
+
+if (save_hidef == TRUE) {
+  # Generate a high definition map for the PDF
+  # Update fig numbering according to the masterlist of figs/tables
+  f3_data <- dta
+
+  f3_plot <- bubblemapper(f3_data, 
+          legend_pos = "none", 
+          legend_title = '',
+          bubble_col = "#08519C",
+          scale_limits = NULL,
+          scale_breaks = NULL,
+          scale_labels = NULL,
+          hidef = save_hidef) 
+
+  output_ggplot(f3_plot, f3_data, show_static, pdf_csv_folder, save_csv, save_pdf)
+  
+  } else {
+  
+    # Generate a standard map for the web page
+    
+    f1.1.2_plot <-
+      
+      bubblemapper(dta, 
+          legend_pos = c(0.14, 0.5), 
+          legend_title = 'Number of\nincident cases',
+          bubble_col = "#08519C",
+          scale_limits = c(100000, 3000000),
+          scale_breaks = c(100000, 500000, 1000000, 2000000),
+          scale_labels = c('100 000', '500 000','1 000 000', '2 000 000')) +
+  
+  add_annotate(geom='text', label='India', x=78, y=-6, size=2.5, include_coord = TRUE) +
+  add_annotate('segment', x=81, xend=78, y=22.5, yend=-3.5, linewidth = 0.2) +
+  
+  add_annotate(geom='text', label='Pakistan', x=68, y=-1, size=2.5) +
+  add_annotate('segment', x=70, xend=67, y=30.5, yend=1, linewidth = 0.2) +
+  
+  add_annotate('text', label='China', x=151, y=36, size=2.5) +
+  add_annotate('segment',x=98, xend=145, y=36, yend=36, linewidth = 0.2) +
+  
+  add_annotate(geom='text', label='Bangladesh', x=152, y=31, size=2.5) +
+  add_annotate('segment', x=91, xend=140, y=24, yend=31, linewidth = 0.2) +
+  
+  add_annotate(geom='text', label='Philippines', x=152, y=17, size=2.5) +
+  add_annotate('segment', x=125, xend=142, y=8, yend=17, linewidth = 0.2) +
+  
+  add_annotate(geom='text', label='Indonesia', x=107, y=-16, size=2.5) +
+  add_annotate('segment', x=113, xend=105, y=0, yend=-14, linewidth = 0.2) +
+  
+  add_annotate(geom='text', label='Nigeria', x=-11, y=0, size=2.5) +
+  add_annotate('segment', x=8, xend=-4, y=9, yend=0, linewidth = 0.2) +
+  
+  #annotate(geom='text', label='South Africa', x=10, y=-45, hjust=0) +
+  
+  add_annotate(geom='text', label='Democratic\nRepublic\nof the Congo', x=-10, y=-20, size=2.5) +
+  add_annotate('segment', x=23, xend=0, y=-4, yend=-20, linewidth = 0.2)  #+
+  
+
+output_ggplot(f1.1.2_plot, dta, show_static=TRUE, pdf_csv_folder, save_csv, save_pdf)
+
+  }
+
+
+# #Proposed map
+# 
+# dta <- est[year==yr, .(iso3, inc.num, country)]
+# dta$var <- cut(
+#   dta$inc.num,
+#   c(0, 100000, 500000, 1000000, 2000000, Inf),
+#   c('0\u2013100 000', '100 000\u2013500 000', '500 000\u20131 000 000', '1 000 000\u20132 000 000','\u22652 000 000'),
+#   right = F,
+#   ordered_result = T
+# )
+# 
+# whomapper(
+#   X = dta, water_col = 'white',
+#   legend_title =  "Estimated number of incident TB cases",
+#   colours = brewer.pal(5, "BuPu"),
+#   legend_pos = c(0.14, 0.34)
+# )
+
+
+```
+<hr />
+
+
+
+### `r anch("Fig. 1.1.3")`<span class="red">Fig. 1.1.3</span> Geographic distribution of the estimated global number of incident TB cases in `r yr`
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, results = "asis", dev = 'png', fig_1.1.3, fig.alt="Share of the number of incident TB cases in 2025"} 
+
+
+library(treemapify)
+
+plot_data113 <- est %>%
+  select(iso3,country,year,g.whoregion,inc.num) %>%
+  subset(year==yr) %>%
+  arrange(desc(inc.num)) %>%
+  mutate(rank = row_number()) %>%
+  mutate(label_text = ifelse(rank <= 10, country, ""))
+
+custom_region_labels <- c(
+  "AFR" = "African Region",
+  "AMR" = "Region of the Americas",
+  "EMR" = "Eastern Mediterranean Region",
+  "EUR" = "European Region", 
+  "SEA" = "South-East Asia Region",
+  "WPR" = "Western Pacific Region"
+)
+
+f1.1.3_plot <- ggplot(plot_data113, aes(area = inc.num, fill = g.whoregion, label = label_text)) +
+  # Draw the rectangles representing burden size
+  geom_treemap(show.legend = TRUE, color = "white", size = 0.5) +
+  # Add the text labels using our custom column
+  geom_treemap_text(
+    colour = "white", # White text contrasts well with colorful fills
+    place = "centre", # Center the labels
+    grow = FALSE,     # Set to TRUE if you want labels to fill the box size
+    reflow = TRUE     # Wrap long country names onto multiple lines
+  ) +
+  # Add titles and theme
+  labs(
+    fill = "WHO region"
+  ) +
+  theme_minimal() +
+  scale_fill_brewer(palette = "Set3",
+                    labels = custom_region_labels)
+
+output_ggplot(f1.1.3_plot, plot_data113, show_static=TRUE, pdf_csv_folder, save_csv, save_pdf)
+
+```
+<!-- <div class="footnote">Estimates of TB incidence for India are <strong>interim</strong>. See <span style="color: red;">Annex 4</span> of the core report document.</div> -->
+
+<hr />
+<br />
+
+The severity of national TB epidemics, in terms of the number of incident TB cases per `r cm` population in `r yr`, varies widely among countries: from less than 10 to more than 500 cases per `r cm` population  (`r lnk("Fig. 1.1.4")`). 
+
+In `r yr`, countries with the highest rates were mostly in the WHO African Region, where `r count(est,year==yr & inc>=300 & g.whoregion=="AFR")[[2,2]]` countries had a rate of more than 300 per `r cm` population. There were `r count(est,year==yr & inc<10 & g.whostatus=="M")[[2,2]]` countries with a low incidence of TB (<10 cases per `r cm` population), mostly in the WHO Region of the Americas and the European Region, plus a few countries in the WHO Eastern Mediterranean and Western Pacific regions.
+
+### `r anch("Fig. 1.1.4")`<span class="red">Fig. 1.1.4 </span>Estimated TB incidence rates, `r yr`
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, results = "asis", dev = 'png', fig_1.1.4, fig.alt="Estimated TB incidence rates, 2025"} 
+
+
+dta <- est[year==yr, .(iso3, inc, country)]
+dta$var <- cut(
+  dta$inc,
+  c(0, 10, 50, 100, 300, 500, Inf),
+  c('0\u20139.9', '10\u201349', '50\u201399', '100\u2013299', '300\u2013499', '\u2265500'),
+  right = F,
+  ordered_result = T
+)
+
+dta[iso3=="PRK", var:=NA]
+
+
+if (save_hidef == TRUE) {
+  # Generate a high definition map for the PDF
+  # Update fig numbering according to the masterlist of figs/tables
+  f5_data <- dta
+  
+  f5_plot <- whomapper(
+  X = f5_data, water_col = 'white',
+  legend_title =  "",
+  colours = brewer.pal(7, "Greens")[2:7],
+  legend_pos = "none",
+  hidef = save_hidef
+  )
+  
+  output_ggplot(f5_plot, f5_data, show_static, pdf_csv_folder, save_csv, save_pdf)
+  
+} else {
+  # Generate a standard map for the web page
+
+f1.1.4_plot <- whomapper(
+  X = dta, water_col = 'white',
+  legend_title =  "Incidence\nper 100 000\npopulation per year",
+  colours = brewer.pal(7, "Greens")[2:7],
+  legend_pos = c(0.14, 0.40)
+  )
+
+output_ggplot(f1.1.4_plot, dta, show_static=TRUE, pdf_csv_folder, save_csv, save_pdf)
+
+}
+
+```
+<!-- <div class="footnote">Estimates of TB incidence for India are <strong>interim</strong>. See <span style="color: red;">Annex 4</span> of the core report document.</div> -->
+
+<hr />
+<br />
+
+
+```{r}
+year_with_highest_tbhiv <- global$year[which.max(global$tbhiv)]
+```
+
+
+In `r yr`, the global proportion of people with a new episode of TB (either new or recurrent cases) who were living with HIV was `r round(100*global$tbhiv[global$year==yr],1)`% (95% UI: `r round(100*global$tbhiv.lo[global$year==yr],1)`&#8211;`r round(100*global$tbhiv.hi[global$year==yr],1)`%) and was highest in countries in the WHO African Region, exceeding 50% in parts of southern Africa (`r lnk("Fig. 1.1.5")`). The proportion has been falling for many years, following a peak at `r round(100*global$tbhiv[global$year==year_with_highest_tbhiv],0)`% in `r year_with_highest_tbhiv`.
+
+### `r anch("Fig. 1.1.5")`<span class="red">Fig. 1.1.5</span> Estimated HIV prevalence in people with a new episode of TB (new or recurrent cases), `r yr`
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, results = "asis", dev = 'png', fig_1.1.5, fig.alt="Estimated HIV prevalence in people with new or recurrent TB, 2025"} 
+
+
+dta <- est[year==yr, .(iso3, tbhiv)]
+dta$var <- cut(
+  dta$tbhiv * 100,
+  c(0, 5, 10, 20, 50, Inf),
+  c('0\u20134.9', '5\u20139.9', '10\u201319', '20\u201349', '\u226550'),
+  right = F,
+  ordered_result = T
+)
+
+dta[iso3=="PRK", var:=NA]
+
+
+f1.1.5_plot <- whomapper(
+  X = dta, water_col = 'white',
+  colours = brewer.pal(5, "Reds"),
+  legend_pos = c(0.14, 0.34),
+  legend_title =  "HIV prevalence,\nall ages (%)"
+  ) 
+
+output_ggplot(f1.1.5_plot, dta, show_static=TRUE, pdf_csv_folder, save_csv, save_pdf)
+
+```
+
+
+<hr /> 
+<br />
+
+TB can affect anyone, regardless of age or sex (`r lnk("Fig. 1.1.6")`). The highest burden is in adult men (aged &#8805;15 years), with an estimated  `r round(inc.men/1e6,1)` million cases (95% UI: `r round(inc.men.lo/1e6,1)`–`r round(inc.men.hi/1e6,1)` million) in `r yr`, equivalent to  `r round(100*inc.men/global$inc.num[global$year==yr],0)`% of the estimated total; by comparison, there were an estimated `r round(inc.women/1e6,1)` million cases (95% UI: `r round(inc.women.lo/1e6,1)`–`r round(inc.women.hi/1e6,1)` million) among adult women (aged &#8805;15 years), equivalent to `r round(100*inc.women/global$inc.num[global$year==yr],0)`% of the estimated total, and `r round(inc.child/1e6,1)` million (95% UI: `r round(inc.child.lo/1e6,2)`–`r round(inc.child.hi/1e6,1)` million) cases among children and young adolescents (aged 0–14 years), equivalent to `r round(100*inc.child/global$inc.num[global$year==yr],0)`% of the estimated total. 
+
+Case notifications of people newly diagnosed with TB in `r yr` were `r round(100*global$c.newinc[global$year==yr]/global$inc.num[global$year==yr],0)`% of the estimated TB incidence overall, with the same figures for adult men and women (`r round(100*sum(globsplt$newrel[globsplt$sex=="M"& globsplt$age %ni% c("0-4","5-14") ])/sum(globsplt$inc[globsplt$sex=="M"& globsplt$age %ni% c("0-4","5-14")]),0)`%). The figure was much lower for children and young adolescents aged 0–14 years (`r round(100*sum(globsplt$newrel[globsplt$age %in% c("0-4","5-14")])/sum(globsplt$inc[globsplt$age %in% c("0-4","5-14")]),0)`%) and lower still for children aged <5 years (`r round(100*sum(globsplt$newrel[globsplt$age=="0-4"])/sum(globsplt$inc[globsplt$age=="0-4"]),0)`%). 
+
+Global estimates of TB incidence during pregnancy and postpartum, in 2023 specifically, have been published recently (`r ref_lnk("3")`). It was estimated that `r formatC(239500, format="f", big.mark=" ", digits=0)` pregnant women (95% UI `r formatC(216300, format="f", big.mark=" ", digits=0)`–`r formatC(262800, format="f", big.mark=" ", digits=0)`) and `r formatC(97600, format="f", big.mark=" ", digits=0)` postpartum women (95% UI `r formatC(90100, format="f", big.mark=" ", digits=0)`–`r formatC(105200, format="f", big.mark=" ", digits=0)`) developed TB globally in 2023.
+
+
+
+
+### `r anch("Fig. 1.1.6")`<span class="red">Fig. 1.1.6</span> Global estimates of TB incidence (absolute numbers) disaggregated by age group and sex, compared with case notifications (female in <span style="color:#6363C0">purple</span>; male in <span style="color:#F4A81D">orange</span>), `r yr`
+
+<div class="subhead"> Bars show TB notifications. Dots and error bars show best estimates of incidence and 95% uncertainty intervals, respectively.</div>
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, results = "asis", dev = 'png', fig_1.1.6, fig.alt="Global estimates of TB incidence numbers and case notifications disaggregated by age and sex (female in purple; male in orange), 2025 "} 
+```
+
+
+<div class="col-md-6">
+#### (a) Female
+<div id="fig_1_1_5a"></div>
+</div>
+<div class="col-md-6">
+#### (b) Male
+<div id="fig_1_1_5b"></div>
+</div>
+
+Regional estimates of the distribution of incident TB cases, disaggregated by age and sex and compared with case notifications, are shown in `r lnk("Fig. 1.1.7")`. The largest numbers are typically in the age groups of 25–34, 35–44 or 45–54 years. The WHO Western Pacific Region is an exception, with the largest number of cases in the age group &#8805;65 years; this is mostly influenced by numbers for China and can be explained by the country’s aging population and declining burden of TB disease (with higher rates of infection and a higher risk of new cases arising from reactivation of previous infections among older people). 
+
+### `r anch("Fig. 1.1.7")`<span class="red">Fig. 1.1.7</span> Regional estimates of TB incidence (absolute numbers) disaggregated by age group and sex, compared with case notifications (female in <span style="color:#6363C0">purple</span>; male in <span style="color:#F4A81D">orange</span>), `r yr`
+<div class="subhead"></div>
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, results = "asis", dev = 'png', fig.height=10, fig_1.1.7, fig.alt="Regional estimates of TB incidence numbers and case notifications disaggregated by age and sex, 2025"} 
+```
+
+
+<div class="row">
+
+<div class="col-md-6">
+#### (a) Female
+<div id="fig_1_1_6a_AFR"></div>
+<div id="fig_1_1_6a_AMR"></div>
+<div id="fig_1_1_6a_EMR"></div>
+<div id="fig_1_1_6a_EUR"></div>
+<div id="fig_1_1_6a_SEA"></div>
+<div id="fig_1_1_6a_WPR"></div>
+</div>
+	
+<div class="col-md-6">
+#### (b) Male
+<div id="fig_1_1_6b_AFR"></div>
+<div id="fig_1_1_6b_AMR"></div>
+<div id="fig_1_1_6b_EMR"></div>
+<div id="fig_1_1_6b_EUR"></div>
+<div id="fig_1_1_6b_SEA"></div>
+<div id="fig_1_1_6b_WPR"></div>
+</div>
+	
+</div>
+
+
+<hr />
+<br />
+
+
+Regional trends in TB incidence rates vary, and progress in relation to the `r inc.mort.milestone.yr` milestone of the End TB Strategy is mixed (`r lnk("Fig. 1.1.8")`).
+
+### `r anch("Fig. 1.1.8")`<span class="red">Fig. 1.1.8</span> Trends in estimated TB incidence rates by WHO region, 2010&#8211;`r yr`
+<div class="subhead">The overall TB incidence rate is shown in <span style="color:#91A93E">green</span> and the incidence rate among people living with HIV is shown in <span style="color:#ED1D24">red</span>. The black solid lines show case notifications of people newly diagnosed with TB, for comparison with estimates of the overall incidence rate. Shaded areas represent 95% uncertainty intervals. The horizontal dashed line shows the `r inc.mort.milestone.yr` milestone of the End TB Strategy, which was a `r (1-inc.milestone.vs.2015)*100`% reduction in the TB incidence rate between 2015 and `r inc.mort.milestone.yr`.  </div> 
+```{r echo=FALSE, message=FALSE, warning=FALSE, results = "asis", dev = 'png', fig.height=8,  fig_1.1.8, fig.alt="Trends in estimated TB incidence rates by WHO region, 2000-2025"} 
+
+f1.1.8_plot <- qplot(year,
+      inc,
+      data = subset(regional,year>=2010),
+      geom = 'line',
+      colour = I('blue')) +
+  geom_line(aes(year, inc.h), colour = I('lightskyblue2')) +
+  geom_ribbon(aes(year, ymin = inc.h.lo, ymax = inc.h.hi),
+              fill = I('lightskyblue2'),
+              alpha = 0.4) +
+  geom_ribbon(aes(year, ymin = inc.lo, ymax = inc.hi),
+              fill = I('blue'),
+              alpha = 0.4) +
+  geom_line(aes(year, newinc)) +
+  geom_hline(aes(yintercept = inc.milestone), linetype = I(2)) +
+  facet_wrap(~ region, scale = 'free_y') +
+  xlab('') + ylab('Number per 100 000 population per year') +
+  expand_limits(y=1) +
+  theme_bw(base_size = 12) +
+  #  scale_y_continuous(trans='log10', breaks=c(1,2,5,10,20,30,50,100,200,300)) +
+ # scale_y_log10() +
+  scale_x_continuous(breaks=c(2010,2015,2020,2025)) +
+  theme_gtb() +
+  theme(legend.position = 'none') 
+
+output_ggplot(f1.1.8_plot, subset(regional,year>=2010), show_static, pdf_csv_folder, save_csv, save_pdf)
+
+
+```
+
+
+<div class="row">
+<div class="col-md-4">
+<div id="fig_1_1_7_AFR"></div>
+<div id="fig_1_1_7_EUR"></div>
+</div>
+	
+<div class="col-md-4">
+<div id="fig_1_1_7_AMR"></div>
+<div id="fig_1_1_7_EMR"></div>
+</div>
+	
+<div class="col-md-4">
+<div id="fig_1_1_7_SEAR"></div>
+<div id="fig_1_1_7_WPR"></div>
+</div>
+</div>
+
+<hr />
+<br />
+
+
+
+
+In `r yr`, the TB incidence rate increased for the fifth consecutive year in the WHO Region of the Americas, reflecting the estimated impact of shortfalls in TB case detection in 2020 and a still incomplete recovery by `r yr`. In the Western Pacific Region, the TB incidence rate has been declining since 2024, following an upward trend in 2020–2023. In 2 other WHO regions, the Eastern Mediterranean Region and the South-East Asia Region, the TB incidence rate decreased for a third consecutive year, continuing to reinforce the 2023 reversal of the 2020–2022 COVID-related upward trend. In the WHO European Region, the TB incidence rate has been falling since 2021. In the WHO African Region, the decline in the TB incidence rate that has been sustained for many years (including during the COVID-19 pandemic) continued in `r yr`.
+
+The biggest estimated reduction in the TB incidence rate since the End TB Strategy baseline year of 2015 has been in the WHO European Region, with a net reduction of `r round(100-100*regional$inc[regional$year==yr & regional$g.whoregion=="EUR"]/regional$inc[regional$year==2015 & regional$g.whoregion=="EUR"],0)`% by `r yr`. This was mainly driven by progress in the Russian Federation. A large reduction has also been achieved in the African Region, with a `r round(100-100*regional$inc[regional$year==yr & regional$g.whoregion=="AFR"]/regional$inc[regional$year==2015 & regional$g.whoregion=="AFR"],0)`% decline by `r yr`. In the South-East Asia Region, the decline was `r round(100-100*regional$inc[regional$year==yr & regional$g.whoregion=="SEA"]/regional$inc[regional$year==2015 & regional$g.whoregion=="SEA"],0)`%. The net decline in `r yr` compared with 2015 was relatively small in the Eastern Mediterranean Region (`r round(100-100*regional$inc[regional$year==yr & regional$g.whoregion=="EMR"]/regional$inc[regional$year==2015 & regional$g.whoregion=="EMR"],1)`%). 
+
+There was no net decline in the Western Pacific Region, due to increases in Indonesia, the Philippines and Papua New Guinea that cancelled out reductions in other countries. Between 2015 and `r yr`, there was a net increase in TB incidence in one WHO region: the Region of the Americas (up `r round(100*regional$inc[regional$year==yr & regional$g.whoregion=="AMR"]/regional$inc[regional$year==2015 & regional$g.whoregion=="AMR"]-100,0)`%).
+
+Regional trends in the estimated number of people who fell ill with TB are available in <span class="red">Figure 2.3.1</span> (<span class="red">Section 2.3</span>). 
+
+
+Trends in TB incidence rates by income group are shown in `r lnk("Fig. 1.1.9")`.
+
+
+### `r anch("Fig. 1.1.9")`<span class="red">Fig. 1.1.9</span> Trends in estimated TB incidence rates by income group, 2010&#8211;`r yr`
+
+<div class="subhead">TB incidence rates are shown in <span style="color:#91A93E">green</span> and the incidence rate among people living with HIV is shown in <span style="color:#ED1D24">red</span>. The black solid lines show notifications of new and recurrent cases for comparison with estimates of the total incidence rate. Shaded areas represent 95% uncertainty intervals.</div> 
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, results = "asis", dev = 'png', fig.height=8,  fig_1.1.9, fig.alt="Trends in estimated TB incidence rates by WHO region, 2000-2025"} 
+
+f1.1.9_plot <- qplot(year,
+      inc,
+      data = subset(income,year>=2010),
+      geom = 'line',
+      colour = I('blue')) +
+  geom_line(aes(year, inc.h), colour = I('lightskyblue2')) +
+  geom_ribbon(aes(year, ymin = inc.h.lo, ymax = inc.h.hi),
+              fill = I('lightskyblue2'),
+              alpha = 0.4) +
+  geom_ribbon(aes(year, ymin = inc.lo, ymax = inc.hi),
+              fill = I('blue'),
+              alpha = 0.4) +
+  geom_line(aes(year, newinc)) +
+  facet_wrap(~ group, scale = 'free_y') +
+  xlab('') + ylab('Number per 100 000 population per year') +
+  expand_limits(y=1) +
+  theme_bw(base_size = 12) +
+  #  scale_y_continuous(trans='log10', breaks=c(1,2,5,10,20,30,50,100,200,300)) +
+ # scale_y_log10() +
+  scale_x_continuous(breaks=c(2010, 2015, 2020, 2025)) +
+  theme_gtb() +
+  theme(legend.position = 'none') 
+
+output_ggplot(f1.1.9_plot, subset(income,year>=2010), show_static, pdf_csv_folder, save_csv, save_pdf)
+
+
+```
+
+
+<div class="row">
+<div class="col-md-6">
+<div id="fig_1_1_8_LIC"></div>
+<div id="fig_1_1_8_LMC"></div>
+</div>
+	
+<div class="col-md-6">
+<div id="fig_1_1_8_UMC"></div>
+<div id="fig_1_1_8_HIC"></div>
+</div>
+</div>
+
+
+<hr />
+<br />
+
+
+
+```{r}
+dta <- subset(est, year==yr, select=c("iso3","country","year","inc"))
+dta_2015 <- subset(est, year==2015, select=c("iso3","inc"))
+setnames(dta_2015, "inc", "inc.2015")
+dta <- merge(dta, dta_2015, by="iso3")
+rm(dta_2015)
+
+dta$rel.red.inc=(1-(dta$inc/dta$inc.2015))*100
+dta$rel.red.inc.cat=ifelse(dta$rel.red.inc>0,"Reduction","Increase")
+
+dta$rel.red.inc.fordisplay=ifelse(dta$rel.red.inc<0,
+                                      -round(dta$rel.red.inc,1),
+                                      round(dta$rel.red.inc,1))
+
+dta$var <- cut(
+  dta$rel.red.inc,
+  c(-Inf,-5,5, 10, 20, 50,Inf),
+  c("Increase (>5%)",'Stable (-5% to +5%)', 'Decrease (6\u20139%)', 'Decrease (10\u201319%)', 'Decrease (20\u201349%)','Decrease (\u226550%)'),
+  right = F,
+  ordered_result = T
+)
+
+dta[iso3=="PRK", var:=NA]
+
+dta=merge(dta,cty[,.(iso3,g.whostatus,g.whoregion)],by="iso3")
+reach.milestone.lst=dta[var=="Decrease (≥50%)" & g.whostatus=="M",unique(iso3)]
+n.reach.milestone=length(reach.milestone.lst)
+
+reach.20pct=dta[(var=="Decrease (≥50%)" | var=="Decrease (20–49%)") & g.whostatus=="M",unique(iso3)]
+n.reach.20pct=length(reach.20pct)
+
+
+reach.20pct.afreur=dta[(var=="Decrease (≥50%)" | var=="Decrease (20–49%)") & g.whostatus=="M" & (g.whoregion=="AFR" | g.whoregion=="EUR"),unique(iso3)]
+n.reach.20pct.afreur=length(reach.20pct.afreur)
+
+incr.5pct=dta[var=="Increase (>5%)" & g.whostatus=="M",unique(iso3)]
+n.incr.5pct=length(incr.5pct)
+
+
+```
+
+
+
+Progress in reducing the TB incidence rate at country level is highly variable (`r lnk("Fig. 1.1.10")`). In total, `r n.reach.20pct` countries (including `r n.reach.20pct.afreur` in the WHO European and African regions) achieved estimated reductions of at least 20% between 2015 and `r yr`, thus reaching or surpassing the first (2020) milestone of the End TB Strategy; and `r n.reach.milestone` countries are estimated to have achieved reductions of at least 50% between 2015 and `r yr`, including 2 high TB burden countries (Namibia and South Africa). At the other extreme, there are `r n.incr.5pct` countries where the TB incidence rate in `r yr` was more than 5% higher than in 2015. These countries are most noticeably in the WHO Region of the Americas but also include three high TB burden countries in Asia: Indonesia, Myanmar and the Philippines. 
+
+
+
+
+
+### `r anch("Fig. 1.1.10")`<span class="red">Fig. 1.1.10</span> Change (%) in the estimated TB incidence rate (new cases per `r cm` population per year), `r yr` compared with 2015
+
+<div class="subhead">The first milestone of the End TB Strategy was a 20% reduction by 2020, compared with 2015; the second milestone was a 50% reduction by 2025, compared with 2015. The last 2 categories (decrease 20&#8211;49%, and decrease &#8805;50%) distinguish the countries that have made the most progress towards the second milestone of the End TB Strategy.</div>
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, results = "asis", dev = 'png', fig_1.1.10, fig.alt="Change in TB incidence between 2015 and 2025"} 
+
+if (save_hidef == TRUE) {
+  # Generate a high definition map for the PDF
+  # Update fig numbering according to the masterlist of figs/tables
+  f13_data <- dta
+  
+  f13_plot <- whomapper(
+  X = f13_data, water_col = 'white',
+  legend_title = "",
+  legend_pos = "none",
+  colours = c("lightyellow2", "lightyellow3", brewer.pal(5, "Purples")[2:5]),
+  hidef = save_hidef
+)
+  
+  output_ggplot(f13_plot, f13_data, show_static, pdf_csv_folder, save_csv, save_pdf)
+  
+} else {
+
+# f1.1.10_plot <- whomapper(
+#   X = dta, water_col = 'white',
+#   legend_title = paste0("Change (", yr, " vs 2015, %)"),
+#   legend_pos = c(0.14, 0.34),
+#   colours = c("lightyellow2","lightyellow3",brewer.pal(4, "Purples"))
+# )
+# 
+
+f1.1.10_plot <- whomapper(
+  X = dta, water_col = 'white',
+  legend_title = paste0("Change (", yr, " vs 2015, %)"),
+  legend_pos = c(0.14, 0.34),
+  # Request 9 colors and take colors 6 through 9 (the darkest 4)
+  colours = c("lightyellow2", "lightyellow3", brewer.pal(5, "Purples")[2:5])
+)
+output_ggplot(f1.1.10_plot, dta, show_static=TRUE, pdf_csv_folder, save_csv, save_pdf)
+
+}
+
+```
+<!-- <div class="footnote">Estimates of TB incidence for India are <strong>interim</strong>. See <span style="color: red;">Annex 4</span> of the core report document.</div> -->
+
+<hr />
+<br />
+
+Trends in the TB incidence rate in the 30 high TB burden countries are also highly variable (`r lnk("Fig. 1.1.11")`). In `r yr`, the best estimate of the TB incidence rate suggested that the 2025 milestone of the End TB Strategy had been reached in Namibia and South Africa, and was close to being reached in Kenya, the United Republic of Tanzania and Zambia.
+
+
+### `r anch("Fig. 1.1.11")`<span class="red">Fig. 1.1.11</span> Trends in estimated TB incidence rates in the 30 high TB burden countries^a^ compared with notifications of new and recurrent cases, 2010&#8211;`r yr`
+<div class="subhead">TB incidence rates are shown in <span style="color:#91A93E">green</span>. The black solid lines show notifications of new and recurrent cases for comparison with estimates of the total incidence rate. Shaded areas represent 95% uncertainty intervals. The horizontal dashed line shows the `r inc.mort.milestone.yr` milestone of the End TB Strategy, which was a `r (1-inc.milestone.vs.2015)*100`% reduction between 2015 and `r inc.mort.milestone.yr`.</div> 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, results = "asis", dev = 'png', fig.height=12, fig_1.1.11, fig.alt="Trends in estimated TB incidence rates in the 30 high TB burden countries compared with notifications of new and recurrent cases, 2010−2025"} 
+
+
+f1.1.11_plot <- qplot(year,
+      inc,
+      data = subset(hest,year>=2010),
+      geom = 'line',
+      colour = I('blue')) +
+  geom_ribbon(aes(year, ymin = inc.lo, ymax = inc.hi),
+              fill = I('blue'),
+              alpha = 0.4) +
+  geom_line(aes(year, newinc)) +
+  geom_hline(aes(yintercept = inc.milestone), linetype = I(2)) +
+  #facet_wrap(~ country, scales = 'free_y', ncol = 5) +
+  facet_wrap(~country, nrow=6, scales="free",
+                     # Use the labeller function to make sure long country names are wrapped in panel headers
+                     labeller = label_wrap_gen(width = 25)) +
+#  expand_limits(y = 1) +
+  xlab('') + ylab('Number per 100 000 population per year') +
+ # scale_y_log10() +
+  scale_x_continuous(breaks=c(2010,2015,2020,2025)) +
+  theme_gtb()
+
+
+output_ggplot(f1.1.11_plot, subset(hest,year>=2010), show_static, pdf_csv_folder, save_csv, save_pdf)
+
+```
+
+<div class="row">
+<div class="col-md-4">
+<div id="fig_1_1_9_AGO"></div> <!-- Angola -->
+</div>
+<div class="col-md-4">
+<div id="fig_1_1_9_BGD"></div> <!-- Bangladesh -->
+</div>
+<div class="col-md-4">
+<div id="fig_1_1_9_BRA"></div> <!-- Brazil -->
+</div>
+</div>
+
+<div class="row">
+<div class="col-md-4">
+<div id="fig_1_1_9_KHM"></div> <!-- Cambodia -->
+</div>
+<div class="col-md-4">
+<div id="fig_1_1_9_CAF"></div> <!-- Central African Republic -->
+</div>
+<div class="col-md-4">
+<div id="fig_1_1_9_CHN"></div> <!-- China -->
+</div>
+</div>
+
+<div class="row">
+<div class="col-md-4">
+<div id="fig_1_1_9_COG"></div> <!-- Congo -->
+</div>
+<div class="col-md-4">
+<div id="fig_1_1_9_COD"></div> <!-- Democratic Republic of the Congo -->
+</div>
+<div class="col-md-4">
+<div id="fig_1_1_9_PRK"></div> <!-- Democratic People's Republic of Korea -->
+</div>
+</div>
+
+<div class="row">
+<div class="col-md-4">
+<div id="fig_1_1_9_ETH"></div> <!-- Ethiopia -->
+</div>
+<div class="col-md-4">
+<div id="fig_1_1_9_IND"></div> <!-- India -->
+</div>
+<div class="col-md-4">
+<div id="fig_1_1_9_IDN"></div> <!-- Indonesia -->
+</div>
+</div>
+
+<div class="row">
+<div class="col-md-4">
+<div id="fig_1_1_9_KEN"></div> <!-- Kenya -->
+</div>
+<div class="col-md-4">
+<div id="fig_1_1_9_LSO"></div> <!-- Lesotho -->
+</div>
+<div class="col-md-4">
+<div id="fig_1_1_9_MNG"></div> <!-- Mongolia -->
+</div>
+</div>
+
+<div class="row">
+<div class="col-md-4">
+<div id="fig_1_1_9_MOZ"></div> <!-- Mozambique -->
+</div>
+<div class="col-md-4">
+<div id="fig_1_1_9_MMR"></div> <!-- Myanmar -->
+</div>
+<div class="col-md-4">
+<div id="fig_1_1_9_NAM"></div> <!-- Namibia -->
+</div>
+</div>
+
+<div class="row">
+<div class="col-md-4">
+<div id="fig_1_1_9_NGA"></div> <!-- Nigeria -->
+</div>
+<div class="col-md-4">
+<div id="fig_1_1_9_PAK"></div> <!-- Pakistan -->
+</div>
+<div class="col-md-4">
+<div id="fig_1_1_9_PNG"></div> <!-- Papua New Guinea -->
+</div>
+</div>
+
+<div class="row">
+<div class="col-md-4">
+<div id="fig_1_1_9_PHL"></div> <!-- Philippines -->
+</div>
+<div class="col-md-4">
+<div id="fig_1_1_9_SLE"></div> <!-- Sierra Leone -->
+</div>
+<div class="col-md-4">
+<div id="fig_1_1_9_ZAF"></div> <!-- South Africa -->
+</div>
+</div>
+
+<div class="row">
+<div class="col-md-4">
+<div id="fig_1_1_9_SSD"></div> <!-- South Sudan -->
+</div>
+<div class="col-md-4">
+<div id="fig_1_1_9_THA"></div> <!-- Thailand -->
+</div>
+<div class="col-md-4">
+<div id="fig_1_1_9_UGA"></div> <!-- Uganda -->
+</div>
+</div>
+
+<div class="row">
+<div class="col-md-4">
+<div id="fig_1_1_9_TZA"></div> <!-- United Republic of Tanzania -->
+</div>
+<div class="col-md-4">
+<div id="fig_1_1_9_VNM"></div> <!-- Viet Nam -->
+</div>
+<div class="col-md-4">
+<div id="fig_1_1_9_ZMB"></div> <!-- Zambia -->
+</div>
+</div>
+
+<div class="footnote"> ^a^ WHO lists of high burden countries and global TB watchlist countries have been updated for the period 2026–2030 (<span class="red">Annex 3</span> of the core report document). Estimates are not shown for the Democratic People’s Republic of Korea and India because they are under review. For India, see <span class="red">Annex 4</span> of the core report document.</div> 
+<hr />
+<br />
+
+In `r yr`, the estimated TB incidence rate continued to decrease in one of the 2 global TB watchlist countries, Gabon, and stabilized in Liberia (`r lnk("Fig. 1.1.12")`). 
+
+
+### `r anch("Fig. 1.1.12")`<span class="red">Fig. 1.1.12</span> Trends in estimated TB incidence rates in the 2 global TB watchlist countries^a^ compared with notifications of new and recurrent cases, 2010&#8211;`r yr`
+<div class="subhead">TB incidence rates are shown in <span style="color:#91A93E">green</span>. The black solid lines show notifications of new and recurrent cases for comparison with estimates of the total incidence rate. Shaded areas represent 95% uncertainty intervals. The horizontal dashed line shows the `r inc.mort.milestone.yr` milestone of the End TB Strategy, which was a `r (1-inc.milestone.vs.2015)*100`% reduction between 2015 and `r inc.mort.milestone.yr`.</div> 
+```{r echo=FALSE, message=FALSE, warning=FALSE, results = "asis", dev = 'png', fig.height=2.7, fig.width=8, fig.align='left', fig_1.1.12, fig.alt="Trends in estimated TB incidence rates in the 3 WHO watchlist countries compared with notifications of new and recurrent cases, 2010−2025"} 
+
+dta <- est[iso3 %in% c("GAB","LBR")]
+
+f1.1.12_plot <- qplot(year,
+      inc,
+      data = subset(dta,year>=2010),
+      geom = 'line',
+      colour = I('blue')) +
+  geom_ribbon(aes(year, ymin = inc.lo, ymax = inc.hi),
+              fill = I('blue'),
+              alpha = 0.4) +
+  geom_line(aes(year, newinc)) +
+  geom_hline(aes(yintercept = inc.milestone), linetype = I(2)) +
+  #facet_wrap(~ country, scales = 'free_y', ncol = 5) +
+  facet_wrap(~country, nrow=1, scales="free",
+                     # Use the labeller function to make sure long country names are wrapped in panel headers
+                     labeller = label_wrap_gen(width = 25)) +
+#  expand_limits(y = 1) +
+  xlab('') + ylab('Number per 100 000\npopulation per year') +
+ # scale_y_log10() +
+  scale_x_continuous(breaks=c(2010,2015,2020,2025)) +
+  theme_gtb()
+
+output_ggplot(f1.1.12_plot, subset(dta,year>=2010), show_static, pdf_csv_folder, save_csv, save_pdf)
+
+
+```
+
+<div class="row">
+<div class="col-md-6">
+<div id="fig_1_1_10_GAB"></div>
+</div>
+<div class="col-md-6">
+<div id="fig_1_1_10_LBR"></div>
+</div>
+</div>
+<div class="footnote"> ^a^ WHO lists of high burden countries and global TB watchlist countries have been updated for the period 2026–2030 (<span class="red">Annex 3</span> of the core report document).</div> 
+<hr />
+<br />
+
+
+`r lnk("Box 1.1.1")` provides a summary of the methods used to produce estimates of TB incidence for the period 2010–`r yr`. 
+
+`r anch("Box 1.1.1")`
+
+
+
+```{r}
+
+load(here("inc_mort/analysis/est.method.rda"))
+
+est.meth.inc=est.method[,.(iso3,method.inc)]
+
+est.meth.inc= est.meth.inc %>% 
+  mutate(
+  var=case_when(
+  method.inc>=1 & method.inc<=3 ~ "Case notifications and UHC SCI",
+  method.inc>=4 & method.inc<=6 ~ "Case notifications and UHC SCI with statistical model",
+  method.inc>=7 & method.inc<=9 ~ "National TB prevalence survey",
+  method.inc>=10 & method.inc<=12 ~ "National TB inventory study",
+  method.inc==13 ~ "National TB prevalence survey combined with VR data",  
+  method.inc==991 ~ "Case notifications combined with TB mortality data",
+  method.inc==992 ~ "Country-specific customized approach",
+  method.inc==993 ~ "Case notifications with no adjustment (<10 episodes of TB)",
+  method.inc==994 ~ "Case notifications with no adjustment",
+  method.inc==995 ~ "Case notifications with standard adjustment",
+)
+)
+
+country_counts <- est.meth.inc %>%
+  group_by(var) %>%
+  summarise(n_countries = n_distinct(iso3)) %>%
+  arrange(desc(n_countries))
+
+
+
+cm.lst <- union(unique(est.meth.inc$iso3[est.meth.inc$method.inc %in% c(2, 5, 8, 11)]),"BRA")
+rm.lst <- unique(est.meth.inc$iso3[est.meth.inc$method.inc %in% c(3, 6, 9, 12)])
+
+country_names <- cty %>%
+  filter(iso3 %in% cm.lst) %>%
+  pull(country) %>%
+  sub("^Philippines$", "the Philippines", .)
+
+country_model_list <- paste0(
+  paste(country_names[-length(country_names)], collapse = ", "),
+  " and ",
+  country_names[length(country_names)]
+)
+
+
+
+
+# Share in 2024
+
+inc_iso3 <- est[year==yr,.(iso3,inc.num)]
+inc_tot=global$inc.num[global$year==yr]
+
+category_data <- inc_iso3 %>%
+  left_join(est.meth.inc %>% select(iso3, var), by = "iso3")
+
+
+category_shares <- category_data %>%
+  group_by(var) %>%
+  summarise(
+    n_countries = n_distinct(iso3),
+    cat_inc = sum(inc.num, na.rm = TRUE), 
+    .groups = "drop"
+  ) %>%
+  mutate(
+    share_pct = (cat_inc / inc_tot) * 100,
+    Formatted_Share = case_when(
+      share_pct >= 10 ~ paste0(round(share_pct, 0), "%"),
+      share_pct < 0.1 ~ "<0.1%",
+      TRUE ~ paste0(round(share_pct, 1), "%")
+    )
+  ) %>%
+  arrange(desc(share_pct))
+
+
+
+
+
+
+
+library(treemap)
+library(treemapify)
+
+light_palette <- c(
+  "#8dd3c7", "#ffffb3", "#bebada", "#fb8072", "#80b1d3", 
+  "#fdb462", "#b3de69", "#fccde5", "#bc80bd", "#ccebc5"
+)
+
+df_treemap <- category_shares %>% 
+  mutate(
+    formatted_share = ifelse(share_pct >= 10, round(share_pct, 0), round(share_pct, 1)),
+    label_text = paste0(n_countries, " countries\n(", formatted_share, "%)"),
+    var = reorder(var, -share_pct)
+  )
+
+treemap_method <- ggplot(df_treemap, aes(area = cat_inc, fill = var, label = label_text)) +
+  geom_treemap() +
+  geom_treemap_text(
+    colour = "black", 
+    place = "centre", 
+    grow = FALSE, 
+    size = 9,           # Slightly adjusted base size to fit more boxes
+    min.size = 1        # Forces text to appear even on very small tiles (default is usually 4)
+  ) +
+  scale_fill_manual(values = light_palette) +
+  theme_minimal(base_size = 11) +
+  labs(
+    title = NULL,
+    fill = "Estimation Method"
+  ) +
+  guides(fill = guide_legend(ncol = 2, override.aes = list(size = 3))) +
+  theme(
+    legend.position = "bottom",
+    legend.direction = "vertical",
+    legend.text = element_text(size = 8),
+    legend.title = element_text(size = 9, face = "bold")
+  )
+
+share.cm=round(100*sum(inc_iso3$inc.num[inc_iso3$iso3 %in% cm.lst],na.rm=T)/inc_tot,0)
+share.rm=round(100*sum(inc_iso3$inc.num[inc_iso3$iso3 %in% rm.lst],na.rm=T)/inc_tot,1)
+
+
+```
+
+
+
+<div class="textbox">
+## Box 1.1.1 
+
+## Methods used by WHO to estimate TB incidence 
+
+
+The main methods used by WHO to estimate TB incidence at country level in the period 2010–`r yr` are shown in `r lnk("Fig. 1.1.13")`; additional details are provided in `r lnk("Table 1.1.2")`. These methods adhere to global guidelines for accurate and transparent reporting of health estimates (`r ref_lnk("4")`) and are described in detail in a <span class="red">technical appendix</span>. 
+
+Updates to methods used for this report are explained in <span class="red">Annex 4</span> of the core report document. The main update for this report is the use of a new approach to estimate TB incidence in Mongolia and Thailand, using a combination of TB mortality data from a national vital registration system, TB case notification data and results from national TB prevalence surveys.
+
+In addition, updates to estimates based on values of the Universal Health Coverage Service Coverage Index (UHC SCI) and TB case notification data were made for `r category_shares %>% filter(var == "Case notifications and UHC SCI with statistical model") %>% pull(n_countries)+category_shares %>% filter(var == "Case notifications and UHC SCI") %>% pull(n_countries)` countries, using the latest time series of UHC SCI estimates; these were previously available for 2000–2021 but have now been extended to cover the period 2000–2023. 
+
+
+
+
+<!-- ### `r anch("Fig. 1.1.13")`<span class="red">Fig. 1.1.13</span> Main methods used to estimate TB incidence, 2010&#8211;`r yr`  -->
+
+<!-- ```{r echo=FALSE, fig.height=6.5 , message=FALSE, warning=FALSE, results = "asis", dev = 'png', fig_1.1.13a, fig.alt="Main methods used to estimate TB incidence, 2010–2025"}  -->
+
+<!-- treemap_method -->
+<!-- ``` -->
+
+<hr />
+<br />
+
+<!-- Methods used by WHO to estimate TB incidence for 2010–`r yr` included: -->
+
+<!-- * Results from national TB prevalence surveys combined with estimates of the duration of disease, used for `r category_shares %>% filter(var == "National TB prevalence survey") %>% pull(n_countries)` countries with `r category_shares %>% filter(var == "National TB prevalence survey") %>% pull(Formatted_Share)` of the global number of incident TB cases in `r yr`; This includes India where a country-specific dynamic model that was calibrated to survey data as well as other data (e.g. notifications, drug sales) and WHO TB mortality estimates was used (for further details, see the <span class="red">technical appendix</span>). -->
+
+<!-- * Results from national TB prevalence surveys combined data from the vital registration system and TB case notifications was used in `r category_shares %>% filter(var == "National TB prevalence survey combined with VR data") %>% pull(n_countries)` with `r category_shares %>% filter(var == "National TB prevalence survey combined with VR data") %>% pull(Formatted_Share)` of the global number of incident TB cases in `r yr`; -->
+
+<!-- <!-- * Results from a national TB prevalence survey combined with a country-specific dynamic model that was calibrated to survey data as well as other data (e.g. notifications, drug sales) and WHO TB mortality estimates. This was used for India, which had `r  `% of the global number of incident TB cases in `r yr` (for further details, see the <span class="red">technical appendix</span>); --> 
+
+<!-- * Results from national inventory studies that measured the level of underreporting of detected TB cases, used for `r  category_shares %>% filter(var == "National TB inventory study") %>% pull(n_countries)` countries with about `r category_shares %>% filter(var == "National TB inventory study") %>% pull(Formatted_Share)` of the global number of incident TB cases in `r yr`; -->
+
+<!-- * TB notifications upward adjusted according to an incidence:notification ratio derived from a UHC SCI-based statistical model, used for `r category_shares %>% filter(var == "Case notifications and UHC SCI with statistical model") %>% pull(n_countries)` countries with `r category_shares %>% filter(var == "Case notifications and UHC SCI with statistical model") %>% pull(Formatted_Share)` of the global number of incident TB cases in `r yr`; -->
+
+<!-- * TB notifications upward adjusted according to country-specific values for the UHC SCI, used for `r category_shares %>% filter(var == "Case notifications and UHC SCI") %>% pull(n_countries)` countries with `r category_shares %>% filter(var == "Case notifications and UHC SCI") %>% pull(Formatted_Share)` of the global number of incident TB cases in `r yr`; -->
+
+<!-- * A country-specific customized approach, which was used for `r category_shares %>% filter(var == "Country-specific customized approach") %>% pull(n_countries)` African countries for which the UHC SCI methods did not work well. These countries accounted for `r category_shares %>% filter(var == "Country-specific customized approach") %>% pull(Formatted_Share)` of the global number of incident TB cases in `r yr`; -->
+
+<!-- * TB notifications combined with TB mortality data from a national vital registration system. This was used for Brazil, which had `r category_shares %>% filter(var == "Case notifications combined with TB mortality data") %>% pull(Formatted_Share)`  of the global number of incident TB cases in `r yr`; -->
+
+<!-- * TB notifications with no adjustment, used for `r category_shares %>% filter(var == "Case notifications with no adjustment (<10 episodes of TB)") %>% pull(n_countries)` countries that reported less than 10 cases of TB in `r  ` and `r category_shares %>% filter(var == "Case notifications with no adjustment") %>% pull(n_countries)` countries for which country-specific evidence suggested that no adjustment was appropriate (e.g. due to high levels of population-based screening as well as potential for overdiagnosis), which accounted for respectively `r category_shares %>% filter(var == "Case notifications with no adjustment (<10 episodes of TB)") %>% pull(Formatted_Share)` and `r category_shares %>% filter(var == "Case notifications with no adjustment") %>% pull(Formatted_Share)` of the global number of incident cases in `r yr`; -->
+
+<!-- * TB notifications and a standard upward adjustment to account for underreporting, overdiagnosis and underdiagnosis, retained based on bilateral discussions with national TB programmes for `r category_shares %>% filter(var == "Case notifications with standard adjustment") %>% pull(n_countries)` countries for which this method had previously been used for several years, which accounted for about `r category_shares %>% filter(var == "Case notifications with standard adjustment") %>% pull(Formatted_Share)` of the global number of incident TB cases in `r yr` -->
+
+
+
+### `r anch("Fig. 1.1.13")`<span class="red">Fig. 1.1.13</span> Main methods used to estimate TB incidence, 2010&#8211;`r yr` 
+<div class="subhead"> A country-specific dynamic model has been used in `r country_model_list` to account for COVID-19 disruptions. </div> 
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, results = "asis", dev = 'png', fig_1.1.13, fig.alt="Main methods used to estimate TB incidence, 2010–2025"} 
+
+
+ordered_methods <- category_shares %>%
+  arrange(desc(share_pct)) %>%
+  pull(var)
+
+method1 <- est.meth.inc %>%
+  select(iso3, var) %>%
+  mutate(var = factor(var, levels = ordered_methods))
+
+method1[iso3=="PRK", var:=NA]
+
+
+f1.1.13_plot <- whomapper(
+  X = method1, water_col = 'white',
+  legend_title = 'Estimation method',
+  colours = light_palette,
+  legend_pos = c(0.12,0.48)
+  )
+
+
+output_ggplot(f1.1.13_plot, dta, show_static=TRUE, pdf_csv_folder, save_csv, save_pdf)
+
+```
+
+
+
+<hr />
+<br />
+
+
+
+### `r anch("Table 1.1.2")`<span class="red">Table 1.1.2</span> Main methods used to estimate TB incidence, 2010&#8211;`r yr` 
+
+
+```{r tab_1.1.2}
+
+table_data <- category_shares %>% 
+  mutate(
+    Formatted_Share = case_when(
+      share_pct >= 10 ~ paste0(round(share_pct, 0), "%"),
+      share_pct < 0.1 ~ "<0.1%",
+      TRUE ~ paste0(round(share_pct, 1), "%")
+    ),
+    var = as.character(var)
+  ) %>%
+  arrange(desc(share_pct)) %>%
+  select(
+    `Estimation Method` = var,
+    `Number of countries` = n_countries,
+    `Share of total TB incidence` = Formatted_Share
+  )
+
+
+table_data_full <- table_data %>%
+  mutate(
+    Description = case_when(
+      `Estimation Method` == "National TB prevalence survey" ~ "Results from national TB prevalence surveys combined with estimates of the duration of disease; this includes India where a country-specific dynamic model that was calibrated to survey data as well as other data (e.g. notifications, drug sales) and WHO TB mortality estimates was used.",
+      `Estimation Method` == "National TB inventory study" ~ "Measured level of underreporting of detected TB cases.",
+      `Estimation Method` == "Case notifications and UHC SCI with statistical model" ~ "TB notifications upward adjusted according to an incidence:notification ratio derived from a UHC SCI-based statistical model.",
+      `Estimation Method` == "Country-specific customized approach" ~ "Customized approach used for countries where UHC SCI methods did not work well.",
+      `Estimation Method` == "Case notifications and UHC SCI" ~ "TB notifications upward adjusted according to country-specific values for the UHC SCI.",
+      `Estimation Method` == "National TB prevalence survey combined with VR data" ~ "Results from national TB prevalence surveys combined with TB mortality data from a national vital registration system and TB case notifications.",
+      `Estimation Method` == "Case notifications combined with TB mortality data" ~ "TB notifications combined with TB mortality data from a national vital registration system (used for Brazil).",
+      `Estimation Method` == "Case notifications with no adjustment" ~ "Countries for which country-specific evidence suggested that no adjustment was appropriate (e.g. due to high levels of population-based screening as well as potential for overdiagnosis).",
+      `Estimation Method` == "Case notifications with standard adjustment" ~ "TB notifications and a standard upward adjustment to account for underreporting, overdiagnosis and underdiagnosis, used until 2024 and retained for use in 2025 and 2026 based on bilateral discussions with national TB programmes.",
+      `Estimation Method` == "Case notifications with no adjustment (<10 episodes of TB)" ~ "TB notifications with no adjustment, used for countries that reported fewer than 10 cases of TB.",
+      TRUE ~ NA_character_
+    )
+  )
+
+table_data_full <- table_data_full %>%
+  select(
+    `Estimation method` = `Estimation Method`,
+    Description,
+    `Number of countries`,
+    `Share of total TB incidence` 
+  )
+
+
+
+knitr::kable(table_data_full, format = "html", align = 'rrcc', table.attr = "id='method_table'")
+```
+
+<hr />
+<br />
+
+
+For `r  length(cm.lst) + length(rm.lst)` countries with the biggest absolute reductions in TB notifications during the COVID-19 pandemic that were a clear departure from historic trends, estimates of TB incidence in 2020–`r yr` were based on country-specific dynamic models: `r country_model_list`. These methods are described in detail in a <span class="red">technical appendix</span>. For all other countries, the same methods as those used for the period 2010–2019 continued to be applied.
+
+
+</div>
+
+
+Country-specific details are available in the [Global tuberculosis report app](https://www.who.int/teams/global-tuberculosis-programme/data#app) and [country profiles](https://worldhealthorg.shinyapps.io/tb_profiles/).
+
+
+Note: All of the percentage reductions or increases referred to in the text of this webpage were calculated based on unrounded numbers, as opposed to the rounded numbers that appear in the interactive graphics.
+
+
+
+`r anch("refs")`
+
+<hr style="border:1px solid gray20">
+
+**References**
+
+1. Floyd K, Glaziou P, Houben R, Sumner T, White RG, Raviglione M. Global tuberculosis targets and milestones set for 2016-2035: definition and rationale. Int J Tuberc Lung Dis. 2018;22(7):723-30 (https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6005124/). 
+
+2. World Health Organization. Resolution WHA67.1. Global strategy and targets for tuberculosis prevention, care and control after 2015. Geneva: World Health Organization; 2014 (http://apps.who.int/gb/ebwha/pdf_files/WHA67/A67_R1-en.pdf). 
+
+3. Mafirakureva N, Cartledge A, Bradshaw I et al. Global estimates of tuberculosis incidence during pregnancy and postpartum: a rapid review and modelling analysis. The Lancet Global Health, 2026; 14, e337–e346.
+
+4. Guidelines for Accurate and Transparent Health Estimates Reporting (GATHER) [website] (http://gather-statement.org/). 
+    
+  
+<hr style="border:1px solid gray20">
+
+**General disclaimers**
+<br>
+The designations employed and the presentation of the material in this publication do not imply the expression of any opinion whatsoever on the part of WHO concerning the legal status of any country, territory, city or area or of its authorities, or concerning the delimitation of its frontiers or boundaries. Dotted and dashed lines on maps represent approximate border lines for which there may not yet be full agreement.
+
+
+```{r js_functions}
+# Insert javascript file containing common Kendo number formatting functions ----
+cat(writeLines(readLines(here("report/resources/gtbr_js.htm"))))
+```
+
+
+
+```{r, json_2_1} 
+# renaming variable for Kendo UI
+names(global) <- gsub('[.]', '_', names(global))
+
+names(regional) <- gsub('[.]', '_', names(regional))
+
+names(hest) <- gsub('[.]', '_', names(hest))
+
+names(income) <- gsub('[.]', '_', names(income))
+
+
+dta <- est[iso3 %in% c('GAB','LBR')]
+names(dta) <- gsub('[.]', '_', names(dta))
+
+desired_age_order <- c("0-4", "5-14", "15-24", "25-34", "35-44", "45-54", "55-64", "65plus")
+globsplt$age <- factor(globsplt$age, levels = desired_age_order, ordered = TRUE)
+regsplt$age <- factor(regsplt$age, levels = desired_age_order, ordered = TRUE)
+
+
+hest[iso3 == "PRK", c("inc", "inc_lo", "inc_hi", "inc_h", "inc_h_hi", "inc_h_lo", "inc_milestone") := NA]
+hest[iso3 == "IND", c("inc", "inc_lo", "inc_hi", "inc_h", "inc_h_hi", "inc_h_lo", "inc_milestone") := NA]
+
+hest_sub <- as.data.table(hest)[year >= 2010]
+hest_sub[iso3 == "IND", country := "India"]
+
+
+```
+
+<script type="text/javascript">
+
+/* JSON data objects for the figures */
+
+
+
+var fig_1_1_1a_data = `r subset(global,year>=2010) %>% dplyr::select(year,inc_num,inc_lo_num,inc_hi_num,c_newinc,inc_h_num,inc_h_hi_num,inc_h_lo_num) %>% toJSON("rows")`; 
+var fig_1_1_1b_data = `r subset(global,year>=2010) %>% dplyr::select(year,inc,inc_lo,inc_hi,newinc,inc_h,inc_h_hi,inc_h_lo,inc_milestone) %>% toJSON("rows")`; 
+
+var fig_1_1_5_data = `r globsplt %>% pivot_wider(names_from = sex, values_from = inc:pop) %>% mutate(inc_F = inc_F*(-1), newrel_F = newrel_F*(-1)) %>% mutate(diff_M = inc_M-newrel_M, diff_F=inc_F-newrel_F) %>% arrange(desc(age))%>% mutate(age=ifelse(age=="65plus","\u226565",as.character(age))) %>% toJSON("rows")`; 
+
+
+var fig_1_1_5a_data = `r globsplt3.piv %>% arrange(age_group)%>% mutate(age_group=ifelse(age_group=="65plus","\u226565",as.character(age_group))) %>% toJSON("rows")`;
+
+
+var fig_1_1_6_data = `r regsplt %>%  pivot_wider(names_from = sex, values_from = inc:newrel) %>% mutate(inc_F = inc_F*(-1), newrel_F = newrel_F*(-1)) %>% mutate(diff_M = inc_M-newrel_M, diff_F=inc_F-newrel_F) %>% arrange(desc(age)) %>% mutate(age=ifelse(age=="65plus","\u226565",as.character(age))) %>% toJSON("rows")`; 
+
+
+var fig_1_1_6new_data_afr = `r disag_afr %>% arrange(age_group)%>% mutate(age_group=ifelse(age_group=="65plus","\u226565",as.character(age_group))) %>% toJSON("rows")`; 
+
+var fig_1_1_6new_data_amr = `r disag_amr %>% arrange(age_group)%>% mutate(age_group=ifelse(age_group=="65plus","\u226565",as.character(age_group))) %>% toJSON("rows")`; 
+
+var fig_1_1_6new_data_emr = `r disag_emr %>% arrange(age_group)%>% mutate(age_group=ifelse(age_group=="65plus","\u226565",as.character(age_group))) %>% toJSON("rows")`; 
+
+var fig_1_1_6new_data_eur = `r disag_eur %>% arrange(age_group)%>% mutate(age_group=ifelse(age_group=="65plus","\u226565",as.character(age_group))) %>% toJSON("rows")`; 
+
+var fig_1_1_6new_data_sea = `r disag_sea %>% arrange(age_group)%>% mutate(age_group=ifelse(age_group=="65plus","\u226565",as.character(age_group))) %>% toJSON("rows")`; 
+
+var fig_1_1_6new_data_wpr = `r disag_wpr %>% arrange(age_group)%>% mutate(age_group=ifelse(age_group=="65plus","\u226565",as.character(age_group))) %>% toJSON("rows")`; 
+
+
+
+var fig_1_1_7_data = `r subset(regional,year>=2010) %>% dplyr::select(region,year,inc,inc_lo,inc_hi,newinc,inc_h,inc_h_hi,inc_h_lo,inc_milestone) %>% toJSON("rows")`; 
+
+var fig_1_1_8_data = `r subset(income,year>=2010) %>% dplyr::select(group,year,inc,inc_lo,inc_hi,newinc,inc_h,inc_h_hi,inc_h_lo) %>% toJSON("rows")`; 
+
+var fig_1_1_9_data = `r subset(hest,year>=2010) %>% dplyr::select(country,iso3,year,inc,inc_lo,inc_hi,newinc,inc_h,inc_h_hi,inc_h_lo,inc_milestone) %>% toJSON("rows")`; 
+
+var fig_1_1_9bis_data = `r subset(hest_sub,year>=2010) %>% dplyr::select(country,iso3,year,inc,inc_lo,inc_hi,newinc,inc_h,inc_h_hi,inc_h_lo,inc_milestone) %>% toJSON("rows")`; 
+  
+var fig_1_1_10_data = `r subset(dta,year>=2010) %>% dplyr::select(country,iso3,year,inc,inc_lo,inc_hi,newinc,inc_h,inc_h_hi,inc_h_lo,inc_milestone) %>% toJSON("rows")`; 
+
+
+</script>
+
+
+```{js, echo=FALSE}
+
+function tb_format_thou_2(n) { 
+  //return thousands formatted to to significant figures
+  nt = n/1000; 
+  return num_spacer(Number(nt.toPrecision(2))*1000)
+}
+
+/* Functions to create the figures */
+
+function createFig_1_1_1a(fig_ID) {
+ 
+		$(fig_ID).kendoChart({
+			dataSource: fig_1_1_1a_data,
+			chartArea: {
+				height: 500
+			},	
+			legend: {
+				position: "bottom"
+			},
+      series: [{
+				type: "line",
+        name: "All TB cases",
+				field: "inc_num",
+				color: "#91A93E",
+				tooltip: {
+					visible: true,
+					template: "All TB cases (#= category #): #= tb_format_thou(value) # 000"
+				}
+			},{
+				type: "rangeArea",
+				fromField: "inc_lo_num",
+				toField: "inc_hi_num",
+				color: "#91A93E",
+				tooltip: {
+					visible: true,
+				format: "{0}",
+				template: "95% uncertainty interval (#= category #): #= tb_format_thou(value.from) # 000–#= tb_format_thou(value.to) # 000"
+				}
+			},{
+				type: "line",
+        name: "Notifications of new and recurrent cases",
+				field: "c_newinc",
+				color: "black",
+				tooltip: {
+					visible: true,
+					format: "{0}",
+					template: "Notifications of new and recurrent cases (#= category #): #= num_spacer(value) #"
+				}
+			},{
+				type: "line",
+        name: "TB cases in people living with HIV",
+				field: "inc_h_num",
+				color: "#ED1D24",
+				tooltip: {
+					visible: true,
+					template: "TB cases in people living with HIV (#= category #): #= tb_format_thou(value) # 000"
+				}
+			},{
+				type: "rangeArea",
+				fromField: "inc_h_lo_num",
+				toField: "inc_h_hi_num",
+				color: "#ED1D24",
+				tooltip: {
+					visible: true,
+				format: "{0}",
+				template: "95% uncertainty interval (#= category #): #= tb_format_thou(value.from) # 000–#= tb_format_thou(value.to) # 000"
+				}
+			},],      
+			valueAxis: {
+
+        labels: {
+					template: "#= axis_spacer(value/1e6) #"
+				},
+				title: {
+					text: "Millions per year",
+					visible: true
+				},
+        min: 0,
+
+				line: {
+					visible: false
+				}
+			}
+			,
+			categoryAxis: {
+				field: "year",
+				labels: {
+					rotation: "auto",
+          step: 3
+				},
+				majorGridLines: {
+					visible: false
+				},
+				title: {
+					text: "Year",
+					visible: true
+				}
+			}
+
+		});
+}
+
+
+
+function createFig_1_1_1b(fig_ID) {
+ 
+		$(fig_ID).kendoChart({
+			dataSource: fig_1_1_1b_data,
+			chartArea: {
+				height: 500
+			},	
+			legend: {
+				position: "bottom"
+			},
+      series: [{
+				type: "line",
+        name: "All TB cases",
+				field: "inc",
+				color: "#91A93E",
+				tooltip: {
+					visible: true,
+					template: "All TB cases (#= category #): #= num_spacer(value) #"
+				}
+			},{
+				type: "rangeArea",
+				fromField: "inc_lo",
+				toField: "inc_hi",
+				color: "#91A93E",
+				tooltip: {
+					visible: true,
+				format: "{0}",
+				template: "95% uncertainty interval (#= category #): #= num_spacer(value.from) #–#= num_spacer(value.to) #"
+				}
+			},{
+				type: "line",
+        name: "Notifications of new and recurrent cases",
+				field: "newinc",
+				color: "black",
+				tooltip: {
+					visible: true,
+					format: "{0}",
+					template: "Notifications of new and recurrent cases (#= category #): #= num_spacer(value) #"
+				}
+			},{
+				type: "line",
+        name: "TB cases in people living with HIV",
+				field: "inc_h",
+				color: "#ED1D24",
+				tooltip: {
+					visible: true,
+					template: "Incidence rate of TB in people living with HIV (#= category #): #= num_spacer(value) #"
+				}
+			},{
+				type: "rangeArea",
+				fromField: "inc_h_lo",
+				toField: "inc_h_hi",
+				color: "#ED1D24",
+				tooltip: {
+					visible: true,
+				format: "{0}",
+				template: "95% uncertainty interval (#= category #): #= num_spacer(value.from) #–#= num_spacer(value.to) #"
+				}
+			},{
+        type: "line",
+        dashType: "dash",
+        field: "inc_milestone",
+        color: "grey",
+        markers: {
+             size: 0,
+             opacity: 0
+           },
+			tooltip: {
+				visible: false,
+			}
+      },],      
+      
+			valueAxis: {
+        labels: {
+					template: "#= axis_spacer(value) #"
+				},
+				title: {
+					text: "Number per 100 000 population per year",
+					visible: true
+				},
+        min: 0,
+        max: 250,
+				line: {
+					visible: false
+				}
+			},      
+      render: function (e) {
+            var draw = kendo.drawing;
+            var padding = 100;
+            var padding2 = 300;
+            var element = this.element;
+            var rect = new kendo.geometry.Rect([padding, padding2], [element.width() - 2 * padding, element.height() - 2 * padding2]);
+
+            var text = new draw.Text("2025 milestone", [0, 0], { font: "bold 9px Verdana,Arial,sans-serif" });
+            draw.align([text], rect, "start");
+            draw.vAlign([text], rect, "start");
+            e.sender.surface.draw(text);
+          },
+			categoryAxis: {
+				field: "year",
+				labels: {
+					rotation: "auto",
+          step: 3
+				},
+				majorGridLines: {
+					visible: false
+				},
+				title: {
+					text: "Year",
+					visible: true
+				}
+			}
+
+		});
+}
+
+
+function createFig_1_1_5(fig_ID, data, min) {
+  
+		$(fig_ID).kendoChart({		
+      dataSource: fig_1_1_5_data,			
+      chartArea: {
+				height: 500
+			},	  
+			legend: {
+				position: "bottom"
+			},
+			seriesDefaults: {
+				type: "bar",
+        stack: true,
+        gap: 0.2
+			},
+			series: [{
+				field: "newrel_M",
+				color: "#F4A81D",
+        tooltip: {
+				visible: true,
+				template: "Number of cases notified in males aged #= category # years: #= num_spacer(value)#"
+			}
+			},{
+				field: "diff_M",
+				color: "#EEEEEE",
+        tooltip: {
+				visible: true,
+				template: "Estimated TB incidence number in males aged #= category # years: #= tb_format_thou_2(dataItem.inc_M)#"
+			}
+			},{
+				field: "newrel_F",
+				color: "#6363C0",
+        tooltip: {
+				visible: true,
+				template: "Number of cases notified in females aged #= category # years: #= num_spacer(value*(-1))#"
+			}
+			},{
+				field: "diff_F",
+				color: "#EEEEEE",
+        tooltip: {
+				visible: true,
+				template: "Estimated TB incidence number in females aged #= category # years: #= tb_format_thou_2(dataItem.inc_F*(-1))#"
+			}
+			},
+              ],
+			valueAxis: {
+				labels: {
+				template:  "#= kendo.toString(Math.abs(value),'n0').replace(/,/g, ' ') #",
+				},
+        title: {
+					text: "Number of cases"
+				},
+				line: {
+					visible: false
+				},
+        axisCrossingValue: min,
+        min: min
+			},
+			categoryAxis: {
+				field: "age",
+				labels: {
+					rotation: "auto"
+				},
+        title: {
+					text: "Age group (years)"
+				},
+				majorGridLines: {
+					visible: false
+				}			}
+		});
+}
+
+function createFig_1_1_6(fig_ID, data, filter, min) {
+  
+  	// Filter the dataset on the country variable
+		dataJSON = data.filter( element => element.name == filter);
+  
+		$(fig_ID).kendoChart({		
+      dataSource: dataJSON,			
+      chartArea: {
+				height: 250
+			},		     
+      title: {
+				text: filter,
+				color: "black",
+				font: "bold 14px  Arial,Helvetica,sans-serif",
+        align: "center"
+			},	  
+			legend: {
+				position: "bottom"
+			},
+			seriesDefaults: {
+				type: "bar",
+        stack: true,
+        gap: 0.2
+			},
+			series: [{
+				field: "newrel_M",
+				color: "#F4A81D",
+        tooltip: {
+				visible: true,
+				template: "Number of cases notified in males aged #= category # years: #= num_spacer(value)#"
+			}
+			},{
+				field: "diff_M",
+				color: "#EEEEEE",
+        tooltip: {
+				visible: true,
+				template: "Estimated TB incidence number in males aged #= category # years: #= tb_format_thou_2(dataItem.inc_M)#"
+			}
+			},{
+				field: "newrel_F",
+				color: "#6363C0",
+        tooltip: {
+				visible: true,
+				template: "Number of cases notified in females aged #= category # years: #= num_spacer(value*(-1))#"
+			}
+			},{
+				field: "diff_F",
+				color: "#EEEEEE",
+        tooltip: {
+				visible: true,
+				template: "Estimated TB incidence number in females aged #= category # years: #= tb_format_thou_2(dataItem.inc_F*(-1))#"
+			}
+			},
+              ],
+			valueAxis: {
+				labels: {
+				template:  "#= kendo.toString(Math.abs(value),'n0').replace(/,/g, ' ') #",
+				step:2
+				},
+        title: {
+					text: "Number of cases"
+				},
+				line: {
+					visible: false
+				},
+        axisCrossingValue: min,
+        min: min
+			},
+			categoryAxis: {
+				field: "age",
+				labels: {
+					rotation: "auto"
+				},
+        title: {
+					text: "Age group (years)"
+				},
+				majorGridLines: {
+					visible: false
+				}			}
+		});
+}  
+
+
+function createFig_1_1_7(fig_ID, data, filter, min, unit) {
+ 
+  	// Filter the dataset on the country variable
+		dataJSON = data.filter( element => element.region == filter);
+  
+		$(fig_ID).kendoChart({		
+      dataSource: dataJSON,			
+			chartArea: {
+				height: 400
+			},	      
+      title: {
+				text: filter,
+				color: "black",
+				font: "bold 14px  Arial,Helvetica,sans-serif",
+        align: "center"
+			},	  
+
+			legend: {
+				position: "bottom"
+			},
+      series: [{
+				type: "line",
+        name: "All TB cases",
+				field: "inc",
+				color: "#91A93E",
+        markers: { size: 4},
+				tooltip: {
+					visible: true,
+					template: "TB incidence rate (#= category #): #= num_spacer(value) #"
+				}
+			},{
+				type: "rangeArea",
+				fromField: "inc_lo",
+				toField: "inc_hi",
+				color: "#91A93E",
+				tooltip: {
+					visible: true,
+				format: "{0}",
+				template: "95% uncertainty interval (#= category #): #= num_spacer(value.from) #–#= num_spacer(value.to) #"
+				}
+			},{
+				type: "line",
+        name: "Notifications of new and recurrent cases",
+				field: "newinc",
+				color: "black",     
+        markers: { size: 4},
+				tooltip: {
+					visible: true,
+					format: "{0}",
+					template: "TB case notification rate (#= category #): #= num_spacer(value) #"
+				}
+			},{
+				type: "line",
+        name: "TB cases in people living with HIV",
+				field: "inc_h",
+				color: "#ED1D24", 
+        markers: { size: 4},
+				tooltip: {
+					visible: true,
+					template: "Incidence rate of TB in people living with HIV (#= category #): #= num_spacer(value) #"
+				}
+			},{
+				type: "rangeArea",
+				fromField: "inc_h_lo",
+				toField: "inc_h_hi",
+				color: "#ED1D24",
+				tooltip: {
+					visible: true,
+				format: "{0}",
+				template: "95% uncertainty interval (#= category #): #= num_spacer(value.from) #–#= num_spacer(value.to) #"
+				}
+			},{
+        type: "line",
+        dashType: "dash",
+        field: "inc_milestone",
+        color: "grey",
+        markers: {
+             size: 0,
+             opacity: 0
+           },
+			tooltip: {
+				visible: false
+			}
+      },],      
+      
+			valueAxis: {
+        labels: {
+					template: "#= axis_spacer(value) #"
+				},
+				title: {
+					text: "Number per 100 000 population\nper year",
+					visible: true
+				},
+        min: 0,
+        axisCrossingValue: 0.1,
+				line: {
+					visible: false
+				}
+			},      
+
+			categoryAxis: {
+				field: "year",
+				labels: {
+					rotation: "auto",
+          step: 3
+				},
+				majorGridLines: {
+					visible: false
+				},
+
+				title: {
+					text: "Year",
+					visible: true
+				}
+			}
+
+		});
+}
+
+
+
+
+
+function createFig_1_1_9_10(fig_ID, data, filter, min, max, unit) {
+ 
+  	// Filter the dataset on the country variable
+		dataJSON = data.filter( element => element.country == filter);
+  
+		$(fig_ID).kendoChart({		
+      dataSource: dataJSON,			
+			chartArea: {
+				height: 250
+			},	      
+      title: {
+				text: filter,
+				color: "black",
+				font: "bold 14px  Arial,Helvetica,sans-serif",
+        align: "center"
+			},	  
+
+			legend: {
+				position: "bottom"
+			},
+      series: [{
+				type: "line",
+				field: "inc",
+				color: "#91A93E",
+        markers: { size: 4},
+				tooltip: {
+					visible: true,
+					template: "TB incidence rate (#= category #): #= num_spacer(value) #"
+				}
+			},{
+				type: "rangeArea",
+				fromField: "inc_lo",
+				toField: "inc_hi",
+				color: "#91A93E",
+				tooltip: {
+					visible: true,
+				format: "{0}",
+				template: "95% uncertainty interval (#= category #): #= num_spacer(value.from) #–#= num_spacer(value.to) #"
+				}
+			},{
+				type: "line",
+				field: "newinc",
+				color: "black",     
+        markers: { size: 4},
+				tooltip: {
+					visible: true,
+					format: "{0}",
+					template: "TB case notification rate (#= category #): #= num_spacer(value) #"
+				}
+			},{
+        type: "line",
+        dashType: "dash",
+        field: "inc_milestone",
+        color: "grey",
+        markers: {
+             size: 0,
+             opacity: 0
+           },
+			tooltip: {
+				visible: false
+			}
+      },],      
+      
+			valueAxis: {
+        labels: {
+					template: "#= axis_spacer(value) #"
+				},
+				title: {
+					text: "Number per 100 000 population\nper year",
+					visible: true
+				},
+       min: 0,
+        axisCrossingValue: 0.1,
+				line: {
+					visible: false
+				}
+			},      
+
+			categoryAxis: {
+				field: "year",
+				labels: {
+					rotation: "auto",
+          step: 3
+				},
+				majorGridLines: {
+					visible: false
+				},
+
+				title: {
+					text: "Year",
+					visible: true
+				}
+			}
+
+		});
+}
+
+
+
+function createFig_1_1_8(fig_ID, data, filter, min, unit) {
+ 
+  	// Filter the dataset on the country variable
+		dataJSON = data.filter( element => element.group == filter);
+  
+		$(fig_ID).kendoChart({		
+      dataSource: dataJSON,			
+			chartArea: {
+				height: 400
+			},	      
+      title: {
+				text: filter,
+				color: "black",
+				font: "bold 14px  Arial,Helvetica,sans-serif",
+        align: "center"
+			},	  
+
+			legend: {
+				position: "bottom"
+			},
+      series: [{
+				type: "line",
+        name: "All TB cases",
+				field: "inc",
+				color: "#91A93E",
+        markers: { size: 4},
+				tooltip: {
+					visible: true,
+					template: "TB incidence rate (#= category #): #= num_spacer(value) #"
+				}
+			},{
+				type: "rangeArea",
+				fromField: "inc_lo",
+				toField: "inc_hi",
+				color: "#91A93E",
+				tooltip: {
+					visible: true,
+				format: "{0}",
+				template: "95% uncertainty interval (#= category #): #= num_spacer(value.from) #–#= num_spacer(value.to) #"
+				}
+			},{
+				type: "line",
+        name: "Notifications of new and recurrent cases",
+				field: "newinc",
+				color: "black",     
+        markers: { size: 4},
+				tooltip: {
+					visible: true,
+					format: "{0}",
+					template: "TB case notification rate (#= category #): #= num_spacer(value) #"
+				}
+			},{
+				type: "line",
+        name: "TB cases in people living with HIV",
+				field: "inc_h",
+				color: "#ED1D24", 
+        markers: { size: 4},
+				tooltip: {
+					visible: true,
+					template: "Incidence rate of TB in people living with HIV (#= category #): #= num_spacer(value) #"
+				}
+			},{
+				type: "rangeArea",
+				fromField: "inc_h_lo",
+				toField: "inc_h_hi",
+				color: "#ED1D24",
+				tooltip: {
+					visible: true,
+				format: "{0}",
+				template: "95% uncertainty interval (#= category #): #= num_spacer(value.from) #–#= num_spacer(value.to) #"
+				}
+			},{
+        type: "line",
+        dashType: "dash",
+        field: "inc_milestone",
+        color: "grey",
+        markers: {
+             size: 0,
+             opacity: 0
+           },
+			tooltip: {
+				visible: false
+			}
+      },],      
+      
+			valueAxis: {
+        labels: {
+					template: "#= axis_spacer(value) #"
+				},
+				title: {
+					text: "Number per 100 000 population\nper year",
+					visible: true
+				},
+        min: 0,
+        axisCrossingValue: 0.1,
+				line: {
+					visible: false
+				}
+			},      
+
+			categoryAxis: {
+				field: "year",
+				labels: {
+					rotation: "auto",
+          step: 3
+				},
+				majorGridLines: {
+					visible: false
+				},
+
+				title: {
+					text: "Year",
+					visible: true
+				}
+			}
+
+		});
+}
+
+
+function createFig_1_1_5a(fig_ID, data) {
+   
+		$(fig_ID).kendoChart({
+			dataSource: data,
+			chartArea: {
+				height: 400
+			},	
+			legend: {
+				position: "bottom"
+			},
+			
+			series: [{
+        type: "line",
+				field: "best_F",
+        errorLowField: "lo_F",
+        errorHighField: "hi_F",
+        errorBars: {color: "#6363C0", line: { width: 3 }},
+        opacity: 0,
+				color: "#6363C0",
+        markers: {
+          visible: true,
+          background: "#6363C0",
+          size: 8
+        },
+        
+			tooltip: {
+				visible: true,
+				template: "Estimated number of TB cases in females aged #= category # years: #= tb_format_thou_2(value) #"
+			}
+			},{
+				type: "rangeArea",
+				fromField: "lo_F",
+				toField: "hi_F",
+				opacity: 0,
+        color: "#6363C0",
+				tooltip: {
+				visible: true,
+				format: "{0}",
+				template: "95% uncertainty interval (age group #= category #): #= tb_format_thou_2(value.from) #\u2013#= tb_format_thou_2(value.to) #"
+				}
+			},
+              
+			{
+			  type : "bar",
+			  gap: 0.2,
+				field: "newrel_F",
+				color: "#6363C0",
+				opacity: 0.6,
+        tooltip: {
+				visible: true,
+				template: "Number of cases notified in females aged #= category # years: #= num_spacer(value) #"
+			}
+			}],
+			
+
+              
+			valueAxis: {
+				labels: {
+				template:  "#= kendo.toString(Math.abs(value),'n0').replace(/,/g, ' ') #",
+				},
+				title: {
+					text: "Number of cases"
+				},
+				line: {
+					visible: false
+				},
+        min: 0,
+        max: 1400000,
+			},
+			categoryAxis: {
+				field: "age_group",
+				labels: {
+					rotation: "auto"
+				},
+				title: {
+					text: "Age group (years)"
+				},
+				majorGridLines: {
+					visible: true
+				}
+			}
+
+		});
+}
+
+
+function createFig_1_1_5b(fig_ID, data) {
+   
+		$(fig_ID).kendoChart({
+			dataSource: data,
+			chartArea: {
+				height: 400
+			},	
+			legend: {
+				position: "bottom"
+			},
+			
+			series: [{
+        type: "line",
+				field: "best_M",
+        errorLowField: "lo_M",
+        errorHighField: "hi_M",
+        errorBars: {color: "#F4A81D", line: { width: 3 }},
+        opacity: 0,
+				color: "#F4A81D",
+        markers: {
+          visible: true,
+          background: "#F4A81D",
+          size: 8
+        },
+        
+			tooltip: {
+				visible: true,
+				template: "Estimated number of TB cases in males aged #= category # years: #= tb_format_thou_2(value) #"
+			}
+			},{
+				type: "rangeArea",
+				fromField: "lo_M",
+				toField: "hi_M",
+				opacity: 0,
+        color: "#F4A81D",
+				tooltip: {
+				visible: true,
+				format: "{0}",
+				template: "95% uncertainty interval (age group #= category #): #= tb_format_thou_2(value.from) #\u2013#= tb_format_thou_2(value.to) #"
+				}
+			},
+              
+			{
+			  type : "bar",
+			  gap: 0.2,
+				field: "newrel_M",
+				color: "#F4A81D",
+				opacity: 0.6,
+        tooltip: {
+				visible: true,
+				template: "Number of cases notified in males aged #= category # years: #= num_spacer(value) #"
+			}
+			}],
+			
+
+              
+			valueAxis: {
+				labels: {
+				template:  "#= kendo.toString(Math.abs(value),'n0').replace(/,/g, ' ') #",
+				},
+				title: {
+					text: "Number of cases"
+				},
+				line: {
+					visible: false
+				},
+        min: 0,
+        max: 1400000,
+			},
+			categoryAxis: {
+				field: "age_group",
+				labels: {
+					rotation: "auto"
+				},
+				title: {
+					text: "Age group (years)"
+				},
+				majorGridLines: {
+					visible: true
+				}
+			}
+
+		});
+}
+
+
+
+
+
+function createFig_1_1_6a(fig_ID, data,maxy,title) {
+   
+		$(fig_ID).kendoChart({
+			dataSource: data,
+			chartArea: {
+				height: 300
+			},	
+			legend: {
+				position: "bottom"
+			},
+			title: {
+				text: title,
+				color: "black",
+				font: "bold 14px  Arial,Helvetica,sans-serif",
+        align: "center"
+			},	  
+
+			
+			series: [{
+        type: "line",
+				field: "best_F",
+        errorLowField: "lo_F",
+        errorHighField: "hi_F",
+        errorBars: {color: "#6363C0", line: { width: 3 }},
+        opacity: 0,
+				color: "#6363C0",
+        markers: {
+          visible: true,
+          background: "#6363C0",
+          size: 8
+        },
+        
+			tooltip: {
+				visible: true,
+				template: "Estimated number of TB cases in females aged #= category # years: #= tb_format_thou_2(value) #"
+			}
+			},{
+				type: "rangeArea",
+				fromField: "lo_F",
+				toField: "hi_F",
+				opacity: 0,
+        color: "#6363C0",
+				tooltip: {
+				visible: true,
+				format: "{0}",
+				template: "95% uncertainty interval (age group #= category #): #= tb_format_thou_2(value.from) #\u2013#= tb_format_thou_2(value.to) #"
+				}
+			},
+              
+			{
+			  type : "bar",
+			  gap: 0.2,
+				field: "newrel_F",
+				color: "#6363C0",
+				opacity: 0.6,
+        tooltip: {
+				visible: true,
+				template: "Number of cases notified in females aged #= category # years: #= num_spacer(value) #"
+			}
+			}],
+			
+
+              
+			valueAxis: {
+				labels: {
+				template:  "#= kendo.toString(Math.abs(value),'n0').replace(/,/g, ' ') #",
+				},
+				title: {
+					text: "Number of cases"
+				},
+				line: {
+					visible: false
+				},
+        min: 0,
+        max: maxy,
+			},
+			categoryAxis: {
+				field: "age_group",
+				labels: {
+					rotation: "auto"
+				},
+				title: {
+					text: "Age group (years)"
+				},
+				majorGridLines: {
+					visible: true
+				}
+			}
+
+		});
+}
+
+
+function createFig_1_1_6b(fig_ID, data,maxy,title) {
+   
+		$(fig_ID).kendoChart({
+			dataSource: data,
+			chartArea: {
+				height: 300
+			},	
+			legend: {
+				position: "bottom"
+			},
+			title: {
+				text: title,
+				color: "black",
+				font: "bold 14px  Arial,Helvetica,sans-serif",
+        align: "center"
+			},	 			
+			series: [{
+        type: "line",
+				field: "best_M",
+        errorLowField: "lo_M",
+        errorHighField: "hi_M",
+        errorBars: {color: "#F4A81D", line: { width: 3 }},
+        opacity: 0,
+				color: "#F4A81D",
+        markers: {
+          visible: true,
+          background: "#F4A81D",
+          size: 8
+        },
+        
+			tooltip: {
+				visible: true,
+				template: "Estimated number of TB cases in males aged #= category # years: #= tb_format_thou_2(value) #"
+			}
+			},{
+				type: "rangeArea",
+				fromField: "lo_M",
+				toField: "hi_M",
+				opacity: 0,
+        color: "#F4A81D",
+				tooltip: {
+				visible: true,
+				format: "{0}",
+				template: "95% uncertainty interval (age group #= category #): #= tb_format_thou_2(value.from) #\u2013#= tb_format_thou_2(value.to) #"
+				}
+			},
+              
+			{
+			  type : "bar",
+			  gap: 0.2,
+				field: "newrel_M",
+				color: "#F4A81D",
+				opacity: 0.6,
+        tooltip: {
+				visible: true,
+				template: "Number of cases notified in males aged #= category # years: #= num_spacer(value) #"
+			}
+			}],
+			
+
+              
+			valueAxis: {
+				labels: {
+				template:  "#= kendo.toString(Math.abs(value),'n0').replace(/,/g, ' ') #",
+				},
+				title: {
+					text: "Number of cases"
+				},
+				line: {
+					visible: false
+				},
+        min: 0,
+        max: maxy,
+			},
+			categoryAxis: {
+				field: "age_group",
+				labels: {
+					rotation: "auto"
+				},
+				title: {
+					text: "Age group (years)"
+				},
+				majorGridLines: {
+					visible: true
+				}
+			}
+
+		});
+}
+
+
+
+
+```
+
+```{js, echo=FALSE}
+
+/* Create the figures after the document has been loaded */
+
+  $(document).ready(function () {
+  
+  createFig_1_1_1a("#fig_1_1_1a");
+  createFig_1_1_1b("#fig_1_1_1b");
+  
+  createFig_1_1_5("#fig_1_1_5_global",fig_1_1_5_data,-1e6);
+  
+  createFig_1_1_5a("#fig_1_1_5a",fig_1_1_5a_data);
+  createFig_1_1_5b("#fig_1_1_5b",fig_1_1_5a_data);
+
+  createFig_1_1_6("#fig_1_1_6_EUR",fig_1_1_6_data,"European Region",-20000);
+  createFig_1_1_6("#fig_1_1_6_AFR",fig_1_1_6_data,"African Region",-250000);
+  createFig_1_1_6("#fig_1_1_6_EMR",fig_1_1_6_data,"Eastern Mediterranean Region",-80000);
+  createFig_1_1_6("#fig_1_1_6_AMR",fig_1_1_6_data,"Region of the Americas",-30000);
+  createFig_1_1_6("#fig_1_1_6_WPR",fig_1_1_6_data,"Western Pacific Region",-200000);
+  createFig_1_1_6("#fig_1_1_6_SEAR",fig_1_1_6_data,"South-East Asia Region",-350000);
+  
+  
+  createFig_1_1_6a("#fig_1_1_6a_AFR",fig_1_1_6new_data_afr,600000,"African Region")
+  createFig_1_1_6b("#fig_1_1_6b_AFR",fig_1_1_6new_data_afr,600000,"African Region")
+  
+  createFig_1_1_6a("#fig_1_1_6a_AMR",fig_1_1_6new_data_amr,80000,"Region of the Americas")
+  createFig_1_1_6b("#fig_1_1_6b_AMR",fig_1_1_6new_data_amr,80000,"Region of the Americas")
+
+  createFig_1_1_6a("#fig_1_1_6a_EMR",fig_1_1_6new_data_emr,200000,"Eastern Mediterranean Region")
+  createFig_1_1_6b("#fig_1_1_6b_EMR",fig_1_1_6new_data_emr,200000,"Eastern Mediterranean Region")
+
+  createFig_1_1_6a("#fig_1_1_6a_EUR",fig_1_1_6new_data_eur,60000,"European Region")
+  createFig_1_1_6b("#fig_1_1_6b_EUR",fig_1_1_6new_data_eur,60000,"European Region")
+
+  createFig_1_1_6a("#fig_1_1_6a_SEA",fig_1_1_6new_data_sea,600000,"South-East Asia Region")
+  createFig_1_1_6b("#fig_1_1_6b_SEA",fig_1_1_6new_data_sea,600000,"South-East Asia Region")
+
+  createFig_1_1_6a("#fig_1_1_6a_WPR",fig_1_1_6new_data_wpr,700000,"Western Pacific Region")
+  createFig_1_1_6b("#fig_1_1_6b_WPR",fig_1_1_6new_data_wpr,700000,"Western Pacific Region")
+
+  
+  createFig_1_1_7("#fig_1_1_7_EUR",fig_1_1_7_data,"European Region",1,10);
+  createFig_1_1_7("#fig_1_1_7_AFR",fig_1_1_7_data,"African Region",1,10);
+  createFig_1_1_7("#fig_1_1_7_EMR",fig_1_1_7_data,"Eastern Mediterranean Region",0.1,10);
+  createFig_1_1_7("#fig_1_1_7_AMR",fig_1_1_7_data,"Region of the Americas",1,4);
+  createFig_1_1_7("#fig_1_1_7_WPR",fig_1_1_7_data,"Western Pacific Region",1,10);
+  createFig_1_1_7("#fig_1_1_7_SEAR",fig_1_1_7_data,"South-East Asia Region",1,10);
+ 
+  createFig_1_1_8("#fig_1_1_8_HIC",fig_1_1_8_data,"High-income countries",1,10);
+  createFig_1_1_8("#fig_1_1_8_LIC",fig_1_1_8_data,"Low-income countries",1,10);
+  createFig_1_1_8("#fig_1_1_8_LMC",fig_1_1_8_data,"Lower-middle-income countries",0.1,10);
+  createFig_1_1_8("#fig_1_1_8_UMC",fig_1_1_8_data,"Upper-middle-income countries",1,4);
+  
+  createFig_1_1_9_10("#fig_1_1_9_AGO",fig_1_1_9_data,"Angola",80, 600, 2);
+  createFig_1_1_9_10("#fig_1_1_9_COG",fig_1_1_9_data,"Congo",100,1000,2);
+  createFig_1_1_9_10("#fig_1_1_9_IND",fig_1_1_9bis_data,"India",80,1000,2);
+  createFig_1_1_9_10("#fig_1_1_9_MNG",fig_1_1_9_data,"Mongolia",70,1000,2);
+  createFig_1_1_9_10("#fig_1_1_9_PAK",fig_1_1_9_data,"Pakistan",5,600,4);
+  createFig_1_1_9_10("#fig_1_1_9_THA",fig_1_1_9_data,"Thailand",50,600,2);
+  
+  createFig_1_1_9_10("#fig_1_1_9_BGD",fig_1_1_9_data,"Bangladesh",50,600,2);
+  createFig_1_1_9_10("#fig_1_1_9_PRK",fig_1_1_9_data,"Democratic People's\nRepublic of Korea",100,700,2);
+  createFig_1_1_9_10("#fig_1_1_9_IDN",fig_1_1_9_data,"Indonesia",20,600,2);
+  createFig_1_1_9_10("#fig_1_1_9_MOZ",fig_1_1_9_data,"Mozambique",100,600,2);
+  createFig_1_1_9_10("#fig_1_1_9_PNG",fig_1_1_9_data,"Papua New Guinea",100,700,2);
+  createFig_1_1_9_10("#fig_1_1_9_UGA",fig_1_1_9_data,"Uganda",100,600,2);
+  
+  createFig_1_1_9_10("#fig_1_1_9_BRA",fig_1_1_9_data,"Brazil",20,100,2);
+  createFig_1_1_9_10("#fig_1_1_9_COD",fig_1_1_9_data,"Democratic Republic\nof the Congo",100,600,2);
+  createFig_1_1_9_10("#fig_1_1_9_KEN",fig_1_1_9_data,"Kenya",100,1500,2);
+  createFig_1_1_9_10("#fig_1_1_9_MMR",fig_1_1_9_data,"Myanmar",50,1500,2);
+  createFig_1_1_9_10("#fig_1_1_9_PHL",fig_1_1_9_data,"Philippines",100,1000,2);
+  createFig_1_1_9_10("#fig_1_1_9_TZA",fig_1_1_9_data,"United Republic of Tanzania",50,1500,2);
+  
+  createFig_1_1_9_10("#fig_1_1_9_CAF",fig_1_1_9_data,"Central African Republic",50,1000,2);
+  createFig_1_1_9_10("#fig_1_1_9_ETH",fig_1_1_9_data,"Ethiopia",50,1500,2);
+  createFig_1_1_9_10("#fig_1_1_9_LSO",fig_1_1_9_data,"Lesotho",100,2500,2);
+  createFig_1_1_9_10("#fig_1_1_9_NAM",fig_1_1_9_data,"Namibia",200,3000,2);
+  createFig_1_1_9_10("#fig_1_1_9_SLE",fig_1_1_9_data,"Sierra Leone",50,600,2);
+  createFig_1_1_9_10("#fig_1_1_9_VNM",fig_1_1_9_data,"Viet Nam",50,800,2);
+  
+  createFig_1_1_9_10("#fig_1_1_9_CHN",fig_1_1_9_data,"China",20,200,2);
+  createFig_1_1_9_10("#fig_1_1_9_KHM",fig_1_1_9_data,"Cambodia",100,1000,2);
+  createFig_1_1_9_10("#fig_1_1_9_SSD",fig_1_1_9_data,"South Sudan",50,600,2);
+  createFig_1_1_9_10("#fig_1_1_9_NGA",fig_1_1_9_data,"Nigeria",20,400,2);
+  createFig_1_1_9_10("#fig_1_1_9_ZAF",fig_1_1_9_data,"South Africa",200,3000,2);
+  createFig_1_1_9_10("#fig_1_1_9_ZMB",fig_1_1_9_data,"Zambia",100,1500,2);
+  
+  createFig_1_1_9_10("#fig_1_1_10_GAB",fig_1_1_10_data,"Gabon",100,1000,2);
+  createFig_1_1_9_10("#fig_1_1_10_LBR",fig_1_1_10_data,"Liberia",20,200,2);
+
+
+});  
+
+```
+
+
+

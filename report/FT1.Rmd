@@ -1,0 +1,679 @@
+--- 
+title: "FT 1" 
+author: "Mathieu Bastard" 
+date: "`r Sys.Date()`" 
+knit: (function(inputFile, encoding) {
+      out_dir <- "./local";
+      rmarkdown::render(inputFile,
+                        encoding=encoding,
+                        output_dir=file.path(dirname(inputFile), out_dir))})
+output:
+  html_fragment:
+    # Don’t include a table of contents
+    toc: no
+    # Set standard figure width to 12 inches
+    fig_width: 12
+    # Don’t write figure captions
+    fig_caption: FALSE
+    # Don't embed external resources (stylesheets, JS libraries) in the output
+    self_contained: FALSE
+    # Don't include <div> tags around a header and the content found until the next header
+    section_divs: FALSE  
+
+# To run this file and store output as html:
+# rmarkdown::render(here::here("report/FT1.rmd"), output_file = "FT1.html", output_dir = here::here("report/local/"))
+--- 
+
+
+```{r setup, include=FALSE} 
+# Chapter 1
+# Set options, load data, utility functions 
+
+knitr::opts_chunk$set(echo = FALSE, 
+                      results = "asis",
+                      message = FALSE,
+                      warning = FALSE,
+                      error = TRUE, # for debugging!
+                      
+                      # Settings for better output of whomapper .png maps
+                      fig.width = 10,
+                      fig.height = 5,
+                      dpi = 350
+                      )
+
+# Kill any attempt at using factors, unless we explicitly want them!
+options(stringsAsFactors=FALSE)
+options(scipen=999)
+
+
+# Load output packages ----
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+library(data.table)
+library(gtbreport)
+library(here)
+library(kableExtra)
+library(gridExtra)
+library(whomapR)
+library(ggrepel)
+library(RColorBrewer)
+library(tidyverse)
+library(stringr)
+library(jsonlite)
+library(dplyr)
+
+
+# Load R functions ----
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+source(here("report/functions/html_links.R"))
+
+
+
+# Set output options ----
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+# Show static chart in addition to Kendo chart?
+show_static = FALSE
+
+# Save underlying data files as CSV and charts as PDF files?
+pdf_csv_folder = here::here("report/local/figures/ft1")
+save_csv = TRUE
+save_pdf = TRUE
+save_hidef = FALSE # TRUE only for producing a high definition map for the PDF!
+
+# Create the output folder (only if it doesn't yet exist)
+dir.create(pdf_csv_folder, showWarnings = FALSE, recursive = TRUE)
+
+
+``` 
+
+```{r css_js}
+# Add standard stylesheets and javascript to support kendo
+cat(writeLines(readLines(here("report/resources/headers.htm"))))
+```
+
+```{css, echo=FALSE}
+
+body {
+    margin: 0;
+}
+
+```
+
+```{r}
+
+# to format 100 000 as a R object, avoid breaking lines
+cm=formatC(1e5, format="f", big.mark=" ", digits=0)
+
+# Estimates year
+yr=2025
+
+```
+
+
+
+# New method to estimate TB incidence using TB mortality data
+
+_Draft! Prepared `r Sys.Date()`_
+
+
+
+## Rationale
+
+Reliable estimates of tuberculosis (TB) incidence and mortality are essential to support country planning, and to monitor progress towards the targets of the World Health Organization (WHO) End TB Strategy (`r ref_lnk("1")`) and the United Nations Sustainable Development Goals (`r ref_lnk("2")`). National TB prevalence surveys are valuable for informing incidence estimates at the time of the survey. However, in the absence of other evidence in subsequent years – for example, from a repeat survey or from TB case notification data of sufficient quality and coverage – robust estimates of trends in TB incidence can be challenging. Trends in TB mortality over time can offer one important source of evidence, particularly in countries that have civil registration and vital statistics (CRVS) of high coverage and quality that include recording of causes of death.
+
+In 2026, WHO collaborated with the Ministries of Health of Mongolia and Thailand on the development of a new method for estimating trends in TB incidence, using longitudinal data from the national vital registration (VR) system, case notification data and a dynamic compartmental state-space model. The model was anchored to longitudinal VR mortality and TB case notification data, enabling the back-calculation and reconstruction of consistent TB incidence trajectories over a 25-year period (2000&#x2013;2025).
+
+
+
+
+## Model structure
+
+A discrete-time Markov model was formulated within a Bayesian state-space framework. The model explicitly tracks longitudinal transitions of the population through key stages of the TB disease and care cascade. By ensuring coherence across three independent sources of data, the framework allows trends in recorded TB mortality to provide additional information about trends in TB incidence. The three sources of data were:
+
+
+- __results from national TB prevalence surveys:__ direct empirical estimates of the prevalence of TB disease were available for 2012 for Thailand, and for 2014−2015 for Mongolia (see also <span class="red">section 1.4</span>);
+
+- __VR data:__ mortality records that meet “usability” criteria (`r ref_lnk("3")`), provided by the WHO Department for Data, Digital Health, Analytics and AI, were available for a period of over 20 years; and 
+
+- __TB case notification data:__ the annual numbers of national TB case notifications were available for all years between 2000 and 2025; they reflect both epidemiological trends over time and programmatic improvements in case-finding.
+
+
+More details are provided in the online <span class="red">technical appendix</span> (`r ref_lnk("4")`).
+
+
+## Country missions and technical discussions
+
+A prerequisite for the use of a new WHO method to estimate TB disease burden is close engagement and collaboration with national authorities. For both Mongolia and Thailand, this was done through technical country missions and online meetings.
+
+
+In late 2025, WHO staff conducted a country mission in Thailand, working directly with the Division of Tuberculosis (Department of Disease Control, Ministry of Public Health) and the Strategy and Planning Division (Ministry of Public Health). Consultations focused on auditing VR coding practices, verifying provincial linkage systems and adjusting model prior distributions for diagnostic delays during the coronavirus disease (COVID-19) pandemic and its aftermath. The most up-to-date cause-of-death data from the national VR system were also compiled during the mission (`r lnk("Fig. 1")`). 
+
+For Mongolia, all available cause-of-death data from the national VR system that were used in the analysis were compiled and assessed during an official epidemiological review, which was conducted by the WHO Regional Office for the Western Pacific in collaboration with Mongolia’s National Center for Communicable Diseases (`r lnk("Fig. 1")`). Data were not available for the years before 2010.
+
+For both countries, a series of virtual technical consultations were held with national experts and the 3 levels of WHO (headquarters, regional office and country office). These consultations were used to present model assumptions, refine calibration parameters and validate the TB burden estimates.
+
+
+### `r anch("Fig. 1")`<span class="red">Fig. 1</span> Trends in TB mortality rates among HIV-negative people, based on national VR data, in (a) Thailand and (b) Mongolia, 2000&#8211;2025
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, results = "asis", dev = 'png', fig_1, fig.alt="Estimated TB incidence rate in 2025"} 
+
+```
+
+<div class="col-md-6">
+#### (a) Thailand
+<div id="fig_1b"></div>
+</div>
+<div class="col-md-6">
+#### (b) Mongolia
+<div id="fig_2b"></div></div>
+
+<hr />
+<br />
+
+
+## Key findings
+
+The dynamic state-space model provides an internally coherent reconstruction of the TB epidemic in both countries, by reconciling VR data, TB case notification data and results from national TB prevalence surveys within a single framework.
+
+
+In Thailand, estimates based on the dynamic model suggest a lower historical burden in the early 2000s and subsequently a smoother, more gradual decline compared with previous estimates published in the _Global tuberculosis report 2025_ (`r ref_lnk("5")`) (`r lnk("Fig. 2")`). Uncertainty intervals are also narrower, especially for the years 2000–2015 (TB mortality) and 2000–2020 (TB incidence). The updated estimate of the TB incidence rate in 2000 was 205 per `r cm` population, steadily declining to 152 in 2015. By 2020, incidence had declined to 146 per `r cm` population, closely aligning with previous estimates. The updated estimates suggest that incidence plateaued during the COVID-19 pandemic, before declining slightly to 142 per `r cm` population in both 2024 and 2025.
+
+
+### `r anch("Fig. 2")`<span class="red">Fig. 2</span> Updated estimates of (a) TB mortality and (b) TB incidence in Thailand between 2000 and 2025, compared with estimates published in 2025
+
+<div class="subhead">Shaded areas represent 95% uncertainty intervals. Estimates are for HIV-negative people and people living with HIV.</div>
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, results = "asis", dev = 'png', fig_2, fig.alt=""} 
+
+```
+
+<div class="col-md-6">
+#### (a) TB mortality rate
+<div id="fig_1c"></div>
+</div>
+<div class="col-md-6">
+#### (b) TB incidence rate
+<div id="fig_1a"></div></div>
+
+<hr />
+<br />
+
+
+
+In Mongolia, previously published estimates (mainly derived from results of the national TB prevalence survey implemented in 2014&#x2013;2015) depicted a persistently flat incidence trajectory of about 428 per `r cm` population between 2000 and 2015, decreasing slightly to 418 in 2020 before increasing to 446 in 2024, accompanied by wide uncertainty intervals. In contrast, the updated estimates suggest a steady, sustained decline in TB incidence over the entire 25-year period, with much narrower uncertainty intervals. Starting at 459 per `r cm` in 2000, incidence declined by about 3% per year, reaching 223 per `r cm` in 2025  (`r lnk("Fig. 3")`).
+
+
+### `r anch("Fig. 3")`<span class="red">Fig. 3</span> Updated estimates of (a) TB mortality and (b) TB incidence in Mongolia between 2000 and 2025, compared with estimates published in 2025
+
+<div class="subhead">Shaded areas represent 95% uncertainty intervals. Estimates are for HIV-negative people and people living with HIV.</div>
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, results = "asis", dev = 'png', fig_3, fig.alt="Estimated TB incidence rate in 2025"} 
+
+```
+
+
+<div class="col-md-6">
+#### (a) TB mortality rate
+<div id="fig_2c"></div>
+</div>
+<div class="col-md-6">
+#### (b) TB incidence rate
+<div id="fig_2a"></div></div>
+
+<hr />
+<br />
+
+
+The narrower uncertainty intervals for the updated estimates for both Mongolia and Thailand reflect the simultaneous use of three complementary sources of empirical evidence in the model: prevalence surveys, VR data and TB case notification data. Estimates remain dependent on the quality of the underlying data.
+
+
+
+## Lessons learned
+
+The use of this new method for estimating TB disease burden in Thailand and Mongolia shows that empirical VR data can be used to reliably improve TB incidence estimates.
+
+The method offers a practical and replicable approach for other high- and moderate-burden countries with maturing CRVS. Although national TB prevalence surveys remain an important source of evidence for estimation of TB incidence, leveraging existing death records alongside national TB case notification data can provide important, complementary sources of evidence on how TB burden changes over time. Bringing these sources together can make fuller use of existing national health information systems and strengthen the evidence available for monitoring the TB epidemic.
+
+WHO is exploring how this approach can be applied for other countries with VR data that meet quality and coverage criteria. 
+
+
+
+
+`r anch("refs")`
+
+<hr style="border:1px solid gray20">
+
+**References**
+
+
+1. The End TB Strategy. Geneva: World Health Organization; 2015 (https://iris.who.int/handle/10665/331326).
+
+2. Sustainable Development Goals [website]. United Nations; 2024 (https://sdgs.un.org/).
+
+3. WHO methods and data sources for country-level causes of death 2000&#x2013;2023. Department of Data, Digital Health, Analytics and AI (DDA), Geneva: World Health Organization; 2026. (https://cdn.who.int/media/docs/default-source/gho-documents/global-health-estimates/ghe2023_cod_methods.pdf?sfvrsn=4d284ba5_1)
+
+4. Methods used by WHO to estimate the global burden of TB disease for publication in the global tuberculosis report 2026. Geneva: World Health Organization; 2026. (_link_)
+
+5. Global tuberculosis report 2025. Geneva: World Health Organization; 2025 (https://iris.who.int/handle/10665/383364). Licence: CC BY-NC-SA 3.0 IGO.
+  
+<hr style="border:1px solid gray20">
+
+
+**General disclaimers**
+<br>
+The designations employed and the presentation of the material in this publication do not imply the expression of any opinion whatsoever on the part of WHO concerning the legal status of any country, territory, city or area or of its authorities, or concerning the delimitation of its frontiers or boundaries. Dotted and dashed lines on maps represent approximate border lines for which there may not yet be full agreement.
+
+
+```{r}
+
+# Prepare data needed
+
+#Load last year estimates data
+load(here('inc_mort/estimates2025/est.rda'))
+old=copy(est)
+rm(est)
+
+
+#Load estimates
+load(here('inc_mort/analysis/est.rda'))
+est_tha <- est[iso3=="THA", .(iso3,year,newinc,inc,inc.lo,inc.hi,mort,mort.lo,mort.hi,vr.mort.nh)]
+est_old_tha <- old[iso3=="THA", .(iso3,year,inc,inc.lo,inc.hi,mort,mort.lo,mort.hi)]
+
+val_cols <- c("inc", "inc.lo", "inc.hi", "mort", "mort.lo", "mort.hi")
+setnames(est_old_tha, val_cols, paste0("old_", val_cols))
+est_tha <- merge(est_tha, est_old_tha, by = c("iso3", "year"), all.x = TRUE)
+est_tha[year==2025, vr.mort.nh:=NA]
+
+est_mng <- est[iso3=="MNG", .(iso3,year,newinc,inc,inc.lo,inc.hi,mort,mort.lo,mort.hi,vr.mort.nh)]
+est_old_mng <- old[iso3=="MNG", .(iso3,year,inc,inc.lo,inc.hi,mort,mort.lo,mort.hi)]
+
+val_cols <- c("inc", "inc.lo", "inc.hi", "mort", "mort.lo", "mort.hi")
+setnames(est_old_mng, val_cols, paste0("old_", val_cols))
+est_mng <- merge(est_mng, est_old_mng, by = c("iso3", "year"), all.x = TRUE)
+est_mng[year==2025, vr.mort.nh:=NA]
+
+
+#mortality
+
+
+```
+
+
+```{r js_functions}
+# Insert javascript file containing common Kendo number formatting functions ----
+cat(writeLines(readLines(here("report/resources/gtbr_js.htm"))))
+```
+
+
+
+```{r, json_2_1} 
+
+names(est_tha) <- gsub('[.]', '_', names(est_tha))
+names(est_mng) <- gsub('[.]', '_', names(est_mng))
+
+```
+
+<script type="text/javascript">
+
+/* JSON data objects for the figures */
+
+
+var fig_1a_data = `r est_tha %>% toJSON("rows")`; 
+var fig_2a_data = `r est_mng %>% toJSON("rows")`; 
+
+
+</script>
+
+
+```{js, echo=FALSE}
+
+function tb_format_thou_2(n) { 
+  //return thousands formatted to to significant figures
+  nt = n/1000; 
+  return num_spacer(Number(nt.toPrecision(2))*1000)
+}
+
+/* Incidence figure */
+
+function createFig_1(fig_ID, data, ymax) {
+
+    var colorUpdated = "#91A93E"; // Olive Green
+    var colorOld     = "#EF6B7D"; // Red / Previous
+    var colorNotif   = "#000000"; // Black / Notifications
+
+    $(fig_ID).kendoChart({
+        dataSource: data,
+        chartArea: {
+            height: 500
+        },
+        legend: {
+            position: "bottom"
+        },
+        series: [
+            // --- Previous Estimates Layer (rendered in background) ---
+            {
+                type: "rangeArea",
+                fromField: "old_inc_lo",
+                toField: "old_inc_hi",
+                color: colorOld,
+                opacity: 0.18,
+                line: { width: 0 },
+                tooltip: {
+                    visible: true,
+                    format: "{0}",
+                    template: "95% uncertainty interval - 2025 (#= category #): #= num_spacer(value.from) #–#= num_spacer(value.to) #"
+                }
+            },
+            {
+                type: "line",
+                name: "Estimates published in 2025",
+                field: "old_inc",
+                color: colorOld,
+                width: 2,
+                dashType: "dash",
+                markers: {
+                    visible: true,
+                    size: 5,
+                    type: "circle",
+                    background: "#FFFFFF",
+                    border: { color: colorOld, width: 1.5 }
+                },
+                tooltip: {
+                    visible: true,
+                    template: "Estimates published in 2025 (#= category #): #= num_spacer(value) #"
+                }
+            },
+
+            // --- Updated Estimates Layer ---
+            {
+                type: "rangeArea",
+                fromField: "inc_lo",
+                toField: "inc_hi",
+                color: colorUpdated,
+                opacity: 0.25,
+                line: { width: 0 },
+                tooltip: {
+                    visible: true,
+                    format: "{0}",
+                    template: "95% uncertainty interval - Updated (#= category #): #= num_spacer(value.from) #–#= num_spacer(value.to) #"
+                }
+            },
+            {
+                type: "line",
+                name: "Updated TB incidence estimates",
+                field: "inc",
+                color: colorUpdated,
+                width: 2.5,
+                markers: {
+                    visible: true,
+                    size: 5,
+                    type: "circle",
+                    background: "#FFFFFF",
+                    border: { color: colorUpdated, width: 2 }
+                },
+                tooltip: {
+                    visible: true,
+                    template: "Updated TB incidence estimates (#= category #): #= num_spacer(value) #"
+                }
+            },
+
+            // --- Case Notifications Layer (foreground solid line) ---
+            {
+                type: "line",
+                name: "Notifications of new and recurrent cases",
+                field: "newinc",
+                color: colorNotif,
+                width: 2,
+                markers: {
+                    visible: true,
+                    size: 5,
+                    type: "circle",
+                    background: "#FFFFFF",
+                    border: { color: colorNotif, width: 2 }
+                },
+                tooltip: {
+                    visible: true,
+                    format: "{0}",
+                    template: "Notifications of new and recurrent cases (#= category #): #= num_spacer(value) #"
+                }
+            }
+        ],
+
+        valueAxis: {
+            labels: {
+                template: "#= axis_spacer(value) #"
+            },
+            title: {
+                text: "Number per 100 000 population per year",
+                visible: true
+            },
+            min: 0,
+            max: ymax,
+            line: {
+                visible: false
+            }
+        },
+        categoryAxis: {
+            field: "year",
+            labels: {
+                rotation: "auto",
+                step: 5
+            },
+            majorGridLines: {
+                visible: false
+            },
+            title: {
+                text: "Year",
+                visible: true
+            }
+        }
+    });
+}
+
+
+/* Mortality figures */
+
+function createFig_2(fig_ID, data, ymax) {
+
+    $(fig_ID).kendoChart({
+        dataSource: data,
+        chartArea: {
+            height: 500
+        },
+        legend: {
+            position: "bottom"
+        },
+        series: [{
+            type: "line",
+            name: "TB mortality in HIV-negative people",
+            field: "vr_mort_nh",
+            color: "#1B4965",
+//            width: 0, // Hides connecting line
+            line: {
+                width: 0,
+                opacity: 0
+            },
+            markers: {
+                visible: true,
+                size: 6,
+                type: "circle"
+            },
+            tooltip: {
+                visible: true,
+                template: "TB mortality in HIV-negative (#= category #): #= num_spacer(value) #"
+            }
+        }],
+
+        valueAxis: {
+            labels: {
+                template: "#= axis_spacer(value) #"
+            },
+            title: {
+                text: "Number per 100 000 population per year",
+                visible: true
+            },
+            min: 0,
+            max: ymax,
+            line: {
+                visible: false
+            }
+        },
+        categoryAxis: {
+            field: "year",
+            labels: {
+                rotation: "auto",
+                step: 5
+            },
+            majorGridLines: {
+                visible: false
+            },
+            title: {
+                text: "Year",
+                visible: true
+            }
+        }
+    });
+}
+
+
+/* Mortality figure */
+
+function createFig_3(fig_ID, data, ymax) {
+
+    var colorUpdated = "#1B4965"; // Dark Charcoal
+    var colorOld     = "#EF6B7D"; // Red
+
+    $(fig_ID).kendoChart({
+        dataSource: data,
+        chartArea: {
+            height: 500
+        },	
+        legend: {
+            position: "bottom"
+        },
+        series: [
+            // --- Previous Estimates Layer (rendered first so Updated sits on top) ---
+            {
+                type: "rangeArea",
+                fromField: "old_mort_lo",
+                toField: "old_mort_hi",
+                color: colorOld,
+                opacity: 0.18,
+                line: { width: 0 },
+                tooltip: {
+                    visible: true,
+                    format: "{0}",
+                    template: "95% uncertainty interval - 2025 (#= category #): #= num_spacer(value.from) #–#= num_spacer(value.to) #"
+                }
+            },
+            {
+                type: "line",
+                name: "Estimates published in 2025",
+                field: "old_mort",
+                color: colorOld,
+                width: 2,
+                dashType: "dash", // Optional: dashed line helps distinguish old vs updated in monochrome
+                markers: {
+                    visible: true,
+                    size: 5,
+                    type: "circle",
+                    background: "#FFFFFF",
+                    border: { color: colorOld, width: 1.5 }
+                },
+                tooltip: {
+                    visible: true,
+                    template: "Estimates published in 2025 (#= category #): #= num_spacer(value) #"
+                }
+            },
+            
+            // --- Updated Estimates Layer ---
+            {
+                type: "rangeArea",
+                fromField: "mort_lo",
+                toField: "mort_hi",
+                color: colorUpdated,
+                opacity: 0.25,
+                line: { width: 0 },
+                tooltip: {
+                    visible: true,
+                    format: "{0}",
+                    template: "95% uncertainty interval - Updated (#= category #): #= num_spacer(value.from) #–#= num_spacer(value.to) #"
+                }
+            },
+            {
+                type: "line",
+                name: "Updated TB mortality estimates",
+                field: "mort",
+                color: colorUpdated,
+                width: 2.5,
+                markers: {
+                    visible: true,
+                    size: 5,
+                    type: "circle",
+                    background: "#FFFFFF",
+                    border: { color: colorUpdated, width: 2 }
+                },
+                tooltip: {
+                    visible: true,
+                    template: "Updated TB mortality estimates (#= category #): #= num_spacer(value) #"
+                }
+            }
+        ],
+
+        valueAxis: {
+            labels: {
+                template: "#= axis_spacer(value) #"
+            },
+            title: {
+                text: "Number per 100 000 population per year",
+                visible: true
+            },
+            min: 0,
+            max: ymax,
+            line: {
+                visible: false
+            }
+        },
+        categoryAxis: {
+            field: "year",
+            labels: {
+                rotation: "auto",
+                step: 5
+            },
+            majorGridLines: {
+                visible: false
+            },
+            title: {
+                text: "Year",
+                visible: true
+            }
+        }
+    });
+}
+
+```
+
+```{js, echo=FALSE}
+
+/* Create the figures after the document has been loaded */
+
+  $(document).ready(function () {
+  
+  createFig_1("#fig_1a",fig_1a_data,600);
+  createFig_1("#fig_2a",fig_2a_data,800);
+
+  createFig_2("#fig_1b",fig_1a_data,30);
+  createFig_2("#fig_2b",fig_2a_data,30);
+
+  createFig_3("#fig_1c",fig_1a_data,150);
+  createFig_3("#fig_2c",fig_2a_data,50);
+
+
+
+});  
+
+```
+
+
+
